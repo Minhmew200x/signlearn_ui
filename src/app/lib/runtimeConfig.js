@@ -1,5 +1,6 @@
-﻿const CONFIGURED_API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
-const CONFIGURED_PROXY_TARGET = (import.meta.env.VITE_PROXY_TARGET || '').trim().replace(/\/+$/, '');
+const ENV = import.meta.env || {};
+const CONFIGURED_API_BASE_URL = (ENV.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+const CONFIGURED_PROXY_TARGET = (ENV.VITE_PROXY_TARGET || '').trim().replace(/\/+$/, '');
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
 
 function isHttpUrl(value) {
@@ -8,7 +9,9 @@ function isHttpUrl(value) {
 
 function shouldUseRelativeApiBase() {
   if (typeof window === 'undefined') return false;
-  return LOCAL_HOSTS.has(window.location.hostname);
+  const { hostname, origin } = window.location;
+  if (LOCAL_HOSTS.has(hostname)) return true;
+  return /\.vercel\.app$/i.test(hostname) || /signlearn/i.test(origin);
 }
 
 export function getApiBaseUrl() {
@@ -20,16 +23,12 @@ export function getApiBaseUrl() {
 
 export function getGoogleAuthUrl() {
   return (
-    import.meta.env.VITE_GOOGLE_AUTH_URL ||
-    import.meta.env.VITE_GOOGLE_OAUTH_START_URL ||
+    ENV.VITE_GOOGLE_AUTH_URL ||
+    ENV.VITE_GOOGLE_OAUTH_START_URL ||
     (getApiBaseUrl() ? `${getApiBaseUrl()}/api/v1/auth/google/login` : '/api/v1/auth/google/login')
   );
 }
 
 export function getGoogleCallbackExchangeUrl() {
-  return (
-    import.meta.env.VITE_GOOGLE_CALLBACK_EXCHANGE_URL ||
-    import.meta.env.VITE_GOOGLE_OAUTH_EXCHANGE_PATH ||
-    ''
-  );
+  return ENV.VITE_GOOGLE_CALLBACK_EXCHANGE_URL || ENV.VITE_GOOGLE_OAUTH_EXCHANGE_PATH || '';
 }
