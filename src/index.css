@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.lesson-video::-webkit-media-controls {
+  display: none !important;
+}
+
+.lesson-video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+.lesson-video::-webkit-media-controls-panel {
+  display: none !important;
+}
+
+:root {
+  color-scheme: light;
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: #f8fbff;
+  color: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.10), transparent 28rem),
+    linear-gradient(180deg, #f4f8ff 0%, #ffffff 48%, #f8fbff 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
