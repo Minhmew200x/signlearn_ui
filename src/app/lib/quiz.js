@@ -1,14 +1,5 @@
-import signReferenceCatalog from '../../../response_1780223779452.json';
-
 import { toPlayableVideoUrl } from './material.js';
 
-const signReferenceItems = Array.isArray(signReferenceCatalog?.items) ? signReferenceCatalog.items : [];
-
-const signReferenceBySlug = new Map(
-  signReferenceItems
-    .filter((item) => item && typeof item.slug === 'string' && item.slug.trim())
-    .map((item) => [item.slug.trim(), item]),
-);
 
 function sortByOrderIndex(items) {
   return [...(Array.isArray(items) ? items : [])].sort((a, b) => Number(a?.order_index || 0) - Number(b?.order_index || 0));
@@ -50,7 +41,6 @@ function resolveQuestionVideoUrl(question, lessonMaterial, makeSignVideoEndpoint
 
   const slug = resolveQuestionSlug(question, lessonMaterial);
   if (!slug) return null;
-  if (!signReferenceBySlug.has(slug)) return null;
   return makeSignVideoEndpoint?.(slug) || null;
 }
 
