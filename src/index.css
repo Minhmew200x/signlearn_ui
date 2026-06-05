@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -18,7 +18,7 @@
 
 :root {
   color-scheme: light;
-  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Be Vietnam Pro', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   background: #f8fbff;
   color: #0f172a;
 }

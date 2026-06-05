@@ -93,7 +93,7 @@ async function apiRequest(path, { method = "GET", body, accessToken, query } = {
     });
   } catch (error) {
     const networkError = new Error(
-      "KhÃ´ng thá»ƒ káº¿t ná»‘i API. Náº¿u Ä‘ang cháº¡y local, hÃ£y dÃ¹ng `npm run dev` vÃ  gá»i API qua proxy."
+      "Không thể kết nối API. Nếu đang chạy local, hãy dùng `npm run dev` và gọi API qua proxy."
     );
     networkError.status = 0;
     networkError.cause = error;
@@ -111,7 +111,7 @@ async function apiRequest(path, { method = "GET", body, accessToken, query } = {
   }
 
   if (!response.ok) {
-    const fallbackMessage = `API lÃ¡Â»â€”i ${response.status}`;
+    const fallbackMessage = `API lỗi ${response.status}`;
     const error = new Error(parseApiError(payload, fallbackMessage));
     error.status = response.status;
     error.payload = payload;
@@ -198,7 +198,7 @@ export default function AuthApp() {
     async function exchangeGoogleCodeForToken(authCode) {
       if (!GOOGLE_CALLBACK_EXCHANGE_URL) {
         const error = new Error(
-          "ÄÃ£ nháº­n Ä‘Æ°á»£c code Google nhÆ°ng chÆ°a cáº¥u hÃ¬nh VITE_GOOGLE_CALLBACK_EXCHANGE_URL."
+          "Đã nhận được code Google nhưng chưa cấu hình VITE_GOOGLE_CALLBACK_EXCHANGE_URL."
         );
         error.status = 400;
         throw error;
@@ -226,7 +226,7 @@ export default function AuthApp() {
         try {
           callbackTokenPair = await exchangeGoogleCodeForToken(callback.authCode);
         } catch (exchangeError) {
-          setErrorMessage(exchangeError.message || "KhÃ´ng Ä‘á»•i Ä‘Æ°á»£c mÃ£ Google.");
+          setErrorMessage(exchangeError.message || "Không đổi được mã Google.");
         }
       }
 
@@ -259,10 +259,10 @@ export default function AuthApp() {
             setStatus("signed_in");
             return;
           } catch (refreshError) {
-            setErrorMessage(refreshError.message || "KhÃ´ng thá»ƒ lÃ m má»›i phiÃªn Ä‘Äƒng nháº­p.");
+            setErrorMessage(refreshError.message || "Không thể làm mới phiên đăng nhập.");
           }
         } else {
-          setErrorMessage(error.message || "PhiÃªn Ä‘Äƒng nháº­p Ä‘Ã£ háº¿t háº¡n.");
+          setErrorMessage(error.message || "Phiên đăng nhập đã hết hạn.");
         }
 
         setTokenPair(null);
@@ -298,7 +298,7 @@ export default function AuthApp() {
       setStatus("signed_in");
       navigateTo(getPostLoginPath(me), { replace: true });
     } catch (error) {
-      setErrorMessage(error.message || "ÄÄƒng nháº­p tháº¥t báº¡i.");
+      setErrorMessage(error.message || "Đăng nhập thất bại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -326,7 +326,7 @@ export default function AuthApp() {
   function handleGoogleLogin() {
     setErrorMessage("");
     if (!DEFAULT_GOOGLE_AUTH_URL) {
-      setErrorMessage("ChÆ°a cáº¥u hÃ¬nh URL Google login.");
+      setErrorMessage("Chưa cấu hình URL Google login.");
       return;
     }
     window.location.assign(DEFAULT_GOOGLE_AUTH_URL);
@@ -344,7 +344,7 @@ export default function AuthApp() {
     () => (
       <div className="grid min-h-screen place-items-center bg-gradient-to-br from-blue-50 via-white to-amber-50 p-6 text-slate-900">
         <div className="rounded-3xl bg-white p-8 text-center shadow-xl ring-1 ring-slate-100">
-          <div className="text-2xl font-black">Äang kiá»ƒm tra phiÃªn Ä‘Äƒng nháº­p...</div>
+          <div className="text-2xl font-black">Đang kiểm tra phiên đăng nhập...</div>
         </div>
       </div>
     ),
@@ -399,6 +399,5 @@ export default function AuthApp() {
     </div>
   );
 }
-
 
 

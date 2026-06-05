@@ -25,7 +25,7 @@ export function getGoogleAuthUrl() {
   return (
     ENV.VITE_GOOGLE_AUTH_URL ||
     ENV.VITE_GOOGLE_OAUTH_START_URL ||
-    (getApiBaseUrl() ? `${getApiBaseUrl()}/api/v1/auth/google/login` : '/api/v1/auth/google/login')
+    (getApiBaseUrl() ? `${getApiBaseUrl()}/api/v1/auth/google/start` : '/api/v1/auth/google/start')
   );
 }
 

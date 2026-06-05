@@ -958,7 +958,7 @@ export function AdminDashboard({
                   <Field label="Avatar asset id"><Input value={draft.avatar_asset_id ?? item.avatar_asset_id ?? ""} onChange={(e) => setUserDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), avatar_asset_id: e.target.value } }))} /></Field>
                   <Field label="Reset password"><Input type="password" value={draft.password ?? ""} onChange={(e) => setUserDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), password: e.target.value } }))} /></Field>
                   <div className="md:col-span-6 flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-xs font-semibold text-slate-500">Created {formatDate(item.created_at)} Ãƒâ€šÃ‚Â· Updated {formatDate(item.updated_at)}</div>
+                    <div className="text-xs font-semibold text-slate-500">Created {formatDate(item.created_at)} · Updated {formatDate(item.updated_at)}</div>
                     <div className="flex flex-wrap gap-2">
                       <ActionButton onClick={() => runAction(() => updateUser(item), { success: `Updated user #${item.id}.`, reload: ["nguoi-dung", "tong-quan"] })}>Save</ActionButton>
                       <ActionButton danger onClick={() => runAction(() => deleteUser(item), { success: `Deleted user #${item.id}.`, reload: ["nguoi-dung", "tong-quan"] })}>Delete</ActionButton>
@@ -1109,7 +1109,7 @@ export function AdminDashboard({
                 <div className="rounded-3xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
                   <div>Showing {filteredContentLessons.length} / {lessons.length} lessons</div>
                   <div className="mt-2">Selected: {detail?.title || "No lesson selected"}</div>
-                  {detail ? <div className="mt-1 text-xs text-slate-500">Lesson #{detail.id} Ãƒâ€šÃ‚Â· {detail.slug || "no slug"}</div> : null}
+                  {detail ? <div className="mt-1 text-xs text-slate-500">Lesson #{detail.id} · {detail.slug || "no slug"}</div> : null}
                 </div>
               </>
             ) : <EmptyState title="No lessons" description="Lesson data is required for signs and quiz admin." />}
@@ -1122,7 +1122,7 @@ export function AdminDashboard({
               <div>
                 <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Lesson content</div>
                 <div className="mt-2 text-2xl font-black text-slate-950">{detail?.title || "Select a lesson"}</div>
-                {detail ? <div className="mt-2 text-sm font-semibold text-slate-500">Lesson #{detail.id} Ãƒâ€šÃ‚Â· {detail.slug || "no slug"}</div> : null}
+                {detail ? <div className="mt-2 text-sm font-semibold text-slate-500">Lesson #{detail.id} · {detail.slug || "no slug"}</div> : null}
               </div>
               <GhostButton disabled={!contentLessonId} onClick={() => contentLessonId && loadContentLessonDetail(Number(contentLessonId), { force: true })}>Reload detail</GhostButton>
             </div>
@@ -1356,7 +1356,7 @@ export function AdminDashboard({
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                       <div className="text-lg font-black text-slate-900">{item.title}</div>
-                      <div className="mt-1 text-xs font-semibold text-slate-500">/{item.slug} Ãƒâ€šÃ‚Â· {item.status || "draft"}</div>
+                      <div className="mt-1 text-xs font-semibold text-slate-500">/{item.slug} · {item.status || "draft"}</div>
                       {item.summary ? <div className="mt-2 text-sm font-semibold text-slate-600">{item.summary}</div> : null}
                     </div>
                     <ActionButton danger onClick={() => runAction(() => deletePost(item), { success: `Deleted post #${item.id}.`, reload: ["blog"] })}>Delete</ActionButton>
@@ -1442,7 +1442,7 @@ export function AdminDashboard({
                     <StatusBadge tone="amber">{item.label || item.sign_slug || "attempt"}</StatusBadge>
                     <StatusBadge tone="green">score {item.final_score ?? item.score ?? "-"}</StatusBadge>
                   </div>
-                  <div className="mt-3 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} Ãƒâ€šÃ‚Â· Lesson {item.lesson_id ?? "-"}</div>
+                  <div className="mt-3 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} · Lesson {item.lesson_id ?? "-"}</div>
                   <div className="mt-1 text-xs font-semibold text-slate-500">Completed {formatDate(item.completed_at || item.created_at)}</div>
                 </div>
               )) : <EmptyState title="No attempts" description={practiceData.attemptsError || "No admin practice attempts returned."} />}
@@ -1455,7 +1455,7 @@ export function AdminDashboard({
               {practiceData.sessions.length ? practiceData.sessions.map((item, index) => (
                 <div key={item.id || item.practice_session_id || index} className="rounded-3xl border border-slate-200 p-4">
                   <div className="text-sm font-black text-slate-900">Session #{item.id || item.practice_session_id || index + 1}</div>
-                  <div className="mt-2 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} Ãƒâ€šÃ‚Â· Lesson {item.lesson_id ?? "-"}</div>
+                  <div className="mt-2 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} · Lesson {item.lesson_id ?? "-"}</div>
                   <div className="mt-1 text-xs font-semibold text-slate-500">Started {formatDate(item.started_at || item.created_at)}</div>
                 </div>
               )) : <EmptyState title="No sessions" description={practiceData.sessionsError || "No practice sessions returned."} />}
@@ -1556,6 +1556,5 @@ export function AdminDashboard({
     </div>
   );
 }
-
 
 

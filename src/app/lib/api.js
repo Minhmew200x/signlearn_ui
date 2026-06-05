@@ -75,7 +75,7 @@ export async function apiRequest(path, { method = 'GET', accessToken, body, quer
       signal,
     });
   } catch (error) {
-    throw new ApiError('KhÃ´ng táº£i Ä‘Æ°á»£c dá»¯ liá»‡u tá»« mÃ¡y chá»§.', 0, error);
+    throw new ApiError('Không tải được dữ liệu từ máy chủ.', 0, error);
   }
 
   const rawText = await response.text();
@@ -89,7 +89,7 @@ export async function apiRequest(path, { method = 'GET', accessToken, body, quer
   }
 
   if (!response.ok) {
-    throw new ApiError(extractApiMessage(payload, `API lá»—i ${response.status}`), response.status, payload);
+    throw new ApiError(extractApiMessage(payload, `API lỗi ${response.status}`), response.status, payload);
   }
 
   return payload;
@@ -106,7 +106,7 @@ export function parseResponseText(rawText) {
 
 export function assertListResponseShape(payload, name) {
   if (!payload || typeof payload !== 'object' || !Array.isArray(payload.items)) {
-    throw new ApiError(`${name} sai schema: thiáº¿u trÆ°á»ng items dáº¡ng máº£ng.`, 500, payload);
+    throw new ApiError(`${name} sai schema: thiếu trường items dạng mảng.`, 500, payload);
   }
   return payload.items;
 }
