@@ -6,11 +6,11 @@ function cx(...values) {
 
 function SignlearnBadge() {
   return (
-    <div className={'inline-flex items-center gap-3 rounded-full border border-white/16 bg-white/12 px-4 py-3 text-sm font-semibold text-white/92 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur-xl'}>
+    <div className={'inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/12 px-4 py-3 text-sm font-semibold text-white/92 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur-xl'}>
       <span className={'grid h-8 w-8 place-items-center rounded-full bg-white text-blue-700 shadow-[0_10px_24px_rgba(255,255,255,0.28)]'}>
         <span className={'h-2.5 w-2.5 rounded-full bg-amber-400'} />
       </span>
-      <span>Cổng xác thực SignLearn</span>
+      <span>{'Cổng xác thực SignLearn'}</span>
     </div>
   );
 }
@@ -59,39 +59,43 @@ export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, isSubmit
 
   return (
     <div className={'min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.14),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(250,204,21,0.18),_transparent_24%),linear-gradient(180deg,_#f4f8ff_0%,_#ffffff_52%,_#f9fbff_100%)] px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8'}>
-      <div className={'mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1540px] overflow-hidden rounded-[34px] border border-white/60 bg-white/78 shadow-[0_32px_90px_rgba(15,23,42,0.12)] backdrop-blur-sm lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.18fr_0.82fr] xl:grid-cols-[1.22fr_0.78fr]'}>
-        <section className={'relative flex min-h-[420px] items-center bg-[linear-gradient(135deg,#0f4ad7_0%,#2563eb_48%,#60a5fa_100%)] px-6 py-8 text-white sm:px-10 sm:py-10 lg:min-h-full lg:px-16 lg:py-14 xl:px-20'}>
-          <div className={'absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,_rgba(255,255,255,0.18),_transparent_22%),radial-gradient(circle_at_78%_85%,_rgba(250,204,21,0.92),_transparent_14%),radial-gradient(circle_at_62%_74%,_rgba(250,204,21,0.20),_transparent_30%),radial-gradient(circle_at_70%_76%,_rgba(15,23,42,0.32),_transparent_26%)]'} />
+      <div className={'mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1540px] overflow-hidden rounded-[38px] border border-white/70 bg-white/78 shadow-[0_38px_120px_rgba(15,23,42,0.16)] backdrop-blur-sm lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.18fr_0.82fr] xl:grid-cols-[1.22fr_0.78fr]'}>
+        <section className={'relative flex min-h-[420px] items-center bg-[linear-gradient(145deg,#0a45d6_0%,#2563eb_46%,#6aaeff_100%)] px-6 py-8 text-white sm:px-10 sm:py-10 lg:min-h-full lg:px-16 lg:py-14 xl:px-20'}>
+          <div className={'absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,_rgba(255,255,255,0.22),_transparent_22%),radial-gradient(circle_at_78%_85%,_rgba(250,204,21,0.95),_transparent_14%),radial-gradient(circle_at_62%_74%,_rgba(250,204,21,0.22),_transparent_30%),radial-gradient(circle_at_70%_76%,_rgba(15,23,42,0.34),_transparent_26%)]'} />
+          <div className={'absolute inset-y-0 right-0 hidden w-px bg-white/20 lg:block'} />
           <div className={'relative z-10 max-w-2xl'}>
             <SignlearnBadge />
-            <div className={'mt-8 inline-flex items-center rounded-full border border-white/16 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/78'}>Modern SaaS education</div>
-            <h1 className={'mt-7 max-w-[11.5ch] text-[clamp(3.6rem,5.8vw,6.1rem)] font-extrabold leading-[0.94] tracking-[-0.07em] text-balance'}>{isRegister ? 'Tạo tài khoản để học cùng SignLearn' : 'Đăng nhập để vào học cùng SignLearn'}</h1>
-            <p className={'mt-7 max-w-xl text-base font-medium leading-8 text-white/84 sm:text-lg'}>Học ký hiệu theo từng chủ đề, xem video minh họa và luyện tập lại bất cứ lúc nào.</p>
+            <div className={'mt-8 inline-flex items-center rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/78'}>{'Nền tảng học hiện đại'}</div>
+            <h1 className={'mt-8 max-w-[10.8ch] text-[clamp(3.6rem,5.8vw,6.2rem)] font-extrabold leading-[1.06] tracking-[-0.075em] text-balance'}>{isRegister ? 'Tạo tài khoản để học cùng SignLearn' : 'Đăng nhập để vào học cùng SignLearn'}</h1>
+            <p className={'mt-8 max-w-[36rem] text-base font-medium leading-8 text-white/84 sm:text-lg sm:leading-9'}>{'Học ký hiệu theo từng chủ đề, xem video minh họa và luyện tập lại bất cứ lúc nào.'}</p>
           </div>
         </section>
 
         <section className={'relative flex items-center justify-center px-4 py-6 sm:px-8 sm:py-10 lg:px-10 lg:py-12 xl:px-12'}>
-          <div className={'absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(248,250,252,0.98))]'} />
-          <div className={'relative z-10 w-full max-w-[540px] rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-[0_24px_64px_rgba(148,163,184,0.18)] sm:p-8 lg:p-9'}>
-            <div className={'grid grid-cols-2 rounded-[24px] bg-slate-100 p-1.5'}>
-              <TabButton active={!isRegister} onClick={() => onModeChange('login')} disabled={isSubmitting}>Đăng nhập</TabButton>
-              <TabButton active={isRegister} onClick={() => onModeChange('register')} disabled={isSubmitting}>Đăng ký</TabButton>
+          <div className={'absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(59,130,246,0.07),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.86),rgba(248,250,252,0.98))]'} />
+          <div className={'absolute right-10 top-10 h-36 w-36 rounded-full bg-blue-100/50 blur-3xl'} />
+          <div className={'absolute bottom-10 left-10 h-32 w-32 rounded-full bg-amber-100/70 blur-3xl'} />
+          <div className={'relative z-10 w-full max-w-[560px] rounded-[34px] border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-5 shadow-[0_30px_80px_rgba(148,163,184,0.24)] ring-1 ring-slate-100 sm:p-8 lg:p-9'}>
+            <div className={'absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent'} />
+            <div className={'grid grid-cols-2 rounded-[24px] bg-[linear-gradient(180deg,#edf3fb,#e9eef6)] p-1.5 shadow-[inset_0_1px_2px_rgba(148,163,184,0.18)]'}>
+              <TabButton active={!isRegister} onClick={() => onModeChange('login')} disabled={isSubmitting}>{'Đăng nhập'}</TabButton>
+              <TabButton active={isRegister} onClick={() => onModeChange('register')} disabled={isSubmitting}>{'Đăng ký'}</TabButton>
             </div>
             <div className={'mt-7'}>
               <h2 className={'text-3xl font-semibold tracking-[-0.04em] text-slate-900'}>{isRegister ? 'Bắt đầu học cùng SignLearn' : 'Chào mừng quay lại'}</h2>
               <p className={'mt-2 text-sm leading-6 text-slate-500'}>{isRegister ? 'Tạo tài khoản để lưu tiến độ học và thực hành ký hiệu mỗi ngày.' : 'Đăng nhập để tiếp tục lộ trình học ngôn ngữ ký hiệu của bạn.'}</p>
             </div>
             {errorMessage ? <div className={'mt-5 rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700'}>{errorMessage}</div> : null}
-            <div className={'mt-7 space-y-5'}>
-              {isRegister ? <label className={'block'}><span className={'mb-3 block text-sm font-semibold text-slate-700'}>Họ và tên</span><Input value={form.full_name} onChange={(e) => updateField('full_name', e.target.value)} placeholder={'Nguyen Van A'} autoComplete={'name'} /></label> : null}
-              <label className={'block'}><span className={'mb-3 block text-sm font-semibold text-slate-700'}>Email</span><Input type={'email'} value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder={'minhmew@gmail.com'} autoComplete={'email'} /></label>
-              <label className={'block'}><span className={'mb-3 block text-sm font-semibold text-slate-700'}>Mật khẩu</span><Input type={'password'} value={form.password} onChange={(e) => updateField('password', e.target.value)} placeholder={'Nhap mat khau'} autoComplete={isRegister ? 'new-password' : 'current-password'} /></label>
+            <div className={'mt-8 space-y-5'}>
+              {isRegister ? <label className={'block'}><span className={'mb-3 block text-[13px] font-bold uppercase tracking-[0.12em] text-slate-600'}>{'Họ và tên'}</span><Input value={form.full_name} onChange={(e) => updateField('full_name', e.target.value)} placeholder={'Nguyễn Văn A'} autoComplete={'name'} /></label> : null}
+              <label className={'block'}><span className={'mb-3 block text-[13px] font-bold uppercase tracking-[0.12em] text-slate-600'}>{'Email'}</span><Input type={'email'} value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder={'minhmew@gmail.com'} autoComplete={'email'} /></label>
+              <label className={'block'}><span className={'mb-3 block text-[13px] font-bold uppercase tracking-[0.12em] text-slate-600'}>{'Mật khẩu'}</span><Input type={'password'} value={form.password} onChange={(e) => updateField('password', e.target.value)} placeholder={'Nhập mật khẩu'} autoComplete={isRegister ? 'new-password' : 'current-password'} /></label>
             </div>
-            <div className={'mt-7 space-y-4'}>
+            <div className={'mt-8 space-y-4'}>
               <PrimaryButton onClick={() => onSubmit(form)} disabled={isSubmitting}>{isSubmitting ? 'Đang xử lý...' : isRegister ? 'Tạo tài khoản' : 'Đăng nhập'}</PrimaryButton>
-              <SecondaryButton onClick={onGoogleLogin} disabled={isSubmitting} className={'inline-flex items-center justify-center gap-3'}><GoogleIcon /><span>Đăng nhập với Google</span></SecondaryButton>
+              <SecondaryButton onClick={onGoogleLogin} disabled={isSubmitting} className={'inline-flex items-center justify-center gap-3'}><GoogleIcon /><span>{'Đăng nhập với Google'}</span></SecondaryButton>
             </div>
-            <p className={'mt-7 text-center text-sm font-medium text-slate-500'}>{isRegister ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}<button type={'button'} onClick={() => onModeChange(isRegister ? 'login' : 'register')} className={'font-semibold text-blue-700 transition hover:text-blue-800'} disabled={isSubmitting}>{isRegister ? 'Đăng nhập' : 'Đăng ký miễn phí'}</button></p>
+            <p className={'mt-8 text-center text-sm font-medium text-slate-500'}>{isRegister ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}<button type={'button'} onClick={() => onModeChange(isRegister ? 'login' : 'register')} className={'font-semibold text-blue-700 transition hover:text-blue-800'} disabled={isSubmitting}>{isRegister ? 'Đăng nhập' : 'Đăng ký miễn phí'}</button></p>
           </div>
         </section>
       </div>

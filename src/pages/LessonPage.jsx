@@ -11,8 +11,8 @@ function getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint) {
   if (Array.isArray(lessonMaterial?.vocabItems) && lessonMaterial.vocabItems.length > 0) {
     return lessonMaterial.vocabItems.map((item, index) => ({
       id: item.id || item.slug || `${mooc?.id || 'lesson'}-word-${index}`,
-      word: item.word || `Tu vung ${index + 1}`,
-      explanation: item.explanation || 'Chon tu nay de xem video ky hieu.',
+      word: item.word || `Từ vựng ${index + 1}`,
+      explanation: item.explanation || 'Chọn từ này để xem video ký hiệu.',
       slug: item.slug || null,
       videoUrl: item.videoUrl || (item.slug ? makeSignVideoEndpoint(item.slug) : null),
     }));
@@ -21,8 +21,8 @@ function getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint) {
   if (Array.isArray(mooc?.vocabItems) && mooc.vocabItems.length > 0) {
     return mooc.vocabItems.map((item, index) => ({
       id: item.slug || `${mooc.id}-word-${index}`,
-      word: item.word || `Tu vung ${index + 1}`,
-      explanation: item.explanation || 'Chon tu nay de xem video ky hieu.',
+      word: item.word || `Từ vựng ${index + 1}`,
+      explanation: item.explanation || 'Chọn từ này để xem video ký hiệu.',
       slug: item.slug || null,
       videoUrl: item.videoUrl || (item.slug ? makeSignVideoEndpoint(item.slug) : null),
     }));
@@ -252,7 +252,7 @@ export default function LessonPage({
       setQuizResult(result);
       await onQuizCompleted?.(result);
     } catch (error) {
-      setQuizError(error?.message || 'Khong gui duoc quiz.');
+      setQuizError(error?.message || 'Không gửi được quiz.');
     } finally {
       setSubmittingQuiz(false);
     }

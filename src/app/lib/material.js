@@ -153,13 +153,13 @@ export async function loadLessonMaterial({ mooc, accessToken }) {
             quiz: {
               quizId: firstQuiz.id,
               itemId: null,
-              title: firstQuiz.title || "Quiz cuoi bai",
+              title: firstQuiz.title || "Quiz cuối bài",
               description: firstQuiz.description || null,
             },
           };
         }
       } catch (quizSummaryError) {
-        console.warn("Khong tai duoc danh sach quiz cua lesson:", quizSummaryError);
+        console.warn("Không tải được danh sách quiz của lesson:", quizSummaryError);
       }
     }
 
