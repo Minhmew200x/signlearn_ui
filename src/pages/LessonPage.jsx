@@ -440,7 +440,7 @@ export default function LessonPage({
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="text-lg font-black text-slate-900">{item.label}</div>
                           <span className={`rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] ${isCompleted ? 'bg-white text-emerald-700' : isActive ? 'bg-white text-blue-700' : 'bg-white text-slate-500'}`}>
-                            {isCompleted ? 'Xong' : isActive ? 'Dang hoc' : 'Sap toi'}
+                            {isCompleted ? 'Xong' : isActive ? 'Đang học' : 'Sắp tới'}
                           </span>
                         </div>
                         {isActive && item.explanation ? <p className="mt-2 text-sm font-semibold leading-7 text-slate-700">{item.explanation}</p> : null}

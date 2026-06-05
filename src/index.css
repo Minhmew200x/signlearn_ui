@@ -19,7 +19,7 @@
 :root {
   color-scheme: light;
   font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  background: #f8fbff;
+  background: #ffffff;
   color: #0f172a;
 }
 
@@ -35,10 +35,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34rem),
-    radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.10), transparent 28rem),
-    linear-gradient(180deg, #f4f8ff 0%, #ffffff 48%, #f8fbff 100%);
+  background: #ffffff;
 }
 
 #root {
