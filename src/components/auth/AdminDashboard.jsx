@@ -1,45 +1,24 @@
 import React, { useEffect, useMemo, useState } from "react";
+import {
+  QUIZ_QUESTION_TYPE_OPTIONS,
+  buildQuizCreatePayload,
+  buildQuizLinkPayload,
+  buildQuizQuestionPayload,
+  buildQuizUpdatePayload,
+  createEmptyQuizDraft,
+  createEmptyQuizOptionDraft,
+  createEmptyQuizQuestionDraft,
+  getQuestionAdminEndpoint,
+  getQuestionCreateEndpoint,
+  getQuizQuestionTypeConfig,
+} from "../../app/lib/quizAdmin.js";
+import { collectSignSlugOptions } from "../../app/lib/adminSignSlugs.js";
+import { resolveVisibleLessonSelection } from "../../app/lib/adminDashboardContent.js";
 import { makeDashboardPath } from "../../app/lib/routing.js";
 
 const LEVEL_OPTIONS = ["beginner", "intermediate", "advanced"];
 const ROLE_OPTIONS = ["student", "admin"];
-const QUIZ_QUESTION_TYPE_OPTIONS = ["multiple_choice", "video_choice", "sign_to_text"];
-const QUIZ_QUESTION_TYPE_CONFIG = {
-  multiple_choice: {
-    questionTextLabel: "Question text",
-    questionTextPlaceholder: "Prompt/question text",
-    showVideoSlug: false,
-    showAnswer: false,
-    optionKeyLabel: "Option key",
-    optionValueLabel: "Option text",
-    optionValuePlaceholder: "e.g. Xin chao",
-    optionValueField: "option_text",
-    showOptions: true,
-    helper: "Question text + text options. Mark at least one correct answer.",
-  },
-  video_choice: {
-    questionTextLabel: "Question text",
-    questionTextPlaceholder: "Prompt/question text",
-    showVideoSlug: false,
-    showAnswer: false,
-    optionKeyLabel: "Option key",
-    optionValueLabel: "Video slug",
-    optionValuePlaceholder: "e.g. xin-chao",
-    optionValueField: "video_slug",
-    showOptions: true,
-    helper: "Question text + video slug options. Mark the correct video.",
-  },
-  sign_to_text: {
-    questionTextLabel: "Question text",
-    questionTextPlaceholder: "Optional prompt above the sign video",
-    showVideoSlug: true,
-    showAnswer: true,
-    answerLabel: "Answer",
-    answerPlaceholder: "Expected answer text",
-    showOptions: false,
-    helper: "Provide a sign video slug and the expected text answer.",
-  },
-};
+const ADMIN_SIGN_SLUG_LIST_ID = "admin-sign-slug-options";
 const SECTION_DEFS = [
   { id: "tong-quan", label: "Admin" },
   { id: "nguoi-dung", label: "Users" },
@@ -186,162 +165,6 @@ function lessonDetailSignRows(detail) {
   return (detail?.items || []).filter((item) => item?.item_type === "sign");
 }
 
-function parseNullableInteger(value) {
-  if (value === "" || value === null || value === undefined) return null;
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed)) return null;
-  return parsed;
-}
-
-function parseNullablePositiveInteger(value) {
-  const parsed = parseNullableInteger(value);
-  if (parsed === null) return null;
-  return parsed > 0 ? parsed : null;
-}
-
-function createEmptyQuizOptionDraft(overrides = {}) {
-  return {
-    option_key: "",
-    option_text: "",
-    video_slug: "",
-    is_correct: false,
-    ...overrides,
-  };
-}
-
-function createEmptyQuizQuestionDraft(overrides = {}) {
-  return {
-    question_type: "multiple_choice",
-    question_text: "",
-    video_slug: "",
-    answer: "",
-    order_index: 0,
-    points: 1,
-    options: [createEmptyQuizOptionDraft()],
-    ...overrides,
-  };
-}
-
-function createEmptyQuizDraft(overrides = {}) {
-  return {
-    title: "",
-    description: "",
-    passing_score: 70,
-    time_limit_seconds: "",
-    lesson_id: "",
-    ...overrides,
-  };
-}
-
-function getQuizQuestionTypeConfig(questionType) {
-  return QUIZ_QUESTION_TYPE_CONFIG[questionType] || QUIZ_QUESTION_TYPE_CONFIG.multiple_choice;
-}
-
-function buildQuizOptionsPayload(optionsDraft, questionType) {
-  const config = getQuizQuestionTypeConfig(questionType);
-  const options = (optionsDraft || [])
-    .map((option) => ({
-      option_key: String(option.option_key || "").trim() || null,
-      option_text: config.optionValueField === "option_text" ? String(option.option_text || "").trim() || null : null,
-      video_slug: config.optionValueField === "video_slug" ? String(option.video_slug || "").trim() || null : null,
-      is_correct: !!option.is_correct,
-    }))
-    .filter((option) => option.option_key || option.option_text || option.video_slug);
-
-  if (!options.length) throw new Error("Question needs at least one option.");
-  if (!options.some((option) => option.is_correct)) throw new Error("Question needs at least one correct option.");
-
-  options.forEach((option, index) => {
-    if (config.optionValueField === "option_text" && !option.option_text) throw new Error(`Option ${index + 1} needs text for ${questionType}.`);
-    if (config.optionValueField === "video_slug" && !option.video_slug) throw new Error(`Option ${index + 1} needs video slug for ${questionType}.`);
-  });
-
-  return options;
-}
-
-function buildQuizQuestionPayload(draft, fallbackQuestion = null) {
-  const questionType = draft.question_type ?? fallbackQuestion?.question_type ?? "multiple_choice";
-  const config = getQuizQuestionTypeConfig(questionType);
-  const questionText = draft.question_text === undefined
-    ? fallbackQuestion?.question_text ?? null
-    : String(draft.question_text || "").trim() || null;
-  const videoSlug = config.showVideoSlug
-    ? (draft.video_slug === undefined ? String(fallbackQuestion?.video_slug || "").trim() || null : String(draft.video_slug || "").trim() || null)
-    : null;
-  const answer = config.showAnswer
-    ? (draft.answer === undefined ? String(fallbackQuestion?.answer || "").trim() || null : String(draft.answer || "").trim() || null)
-    : null;
-  const optionsSource = draft.options === undefined ? fallbackQuestion?.options : draft.options;
-  const options = config.showOptions ? buildQuizOptionsPayload(optionsSource, questionType) : undefined;
-
-  if (config.showVideoSlug && !videoSlug) throw new Error(`${questionType} needs video slug.`);
-  if (config.showAnswer && !answer) throw new Error(`${questionType} needs answer.`);
-  if (!config.showAnswer && !questionText) throw new Error(`${questionType} needs question text.`);
-
-  if (questionType === "multiple_choice") return { question_text: questionText, options };
-  if (questionType === "video_choice") return { question_text: questionText, options };
-  if (questionType === "sign_to_text") return { question_text: questionText, video_slug: videoSlug, answer };
-
-  throw new Error(`Unsupported question type: ${questionType}`);
-}
-
-function buildQuizLinkPayload(draft, createdQuestion) {
-  const questionType = draft.question_type ?? createdQuestion?.question_type;
-  const questionId = Number(createdQuestion?.question_id ?? createdQuestion?.id);
-  if (!questionType || !questionId) throw new Error("Backend did not return question id for linking.");
-
-  return {
-    question_type: questionType,
-    question_id: questionId,
-    order_index: Math.max(0, Number(draft.order_index) || 0),
-    points: Math.max(1, Number(draft.points) || 1),
-  };
-}
-
-function buildQuizCreatePayload(draft, fallbackLessonId = null) {
-  const lessonId = parseNullablePositiveInteger(draft.lesson_id) ?? parseNullablePositiveInteger(fallbackLessonId);
-  const title = String(draft.title || "").trim();
-  if (!title) throw new Error("Quiz needs title.");
-
-  return {
-    lesson_id: lessonId,
-    title,
-    description: String(draft.description || "").trim() || null,
-    passing_score: Math.min(100, Math.max(0, Number(draft.passing_score) || 0)),
-    time_limit_seconds: parseNullablePositiveInteger(draft.time_limit_seconds),
-  };
-}
-
-function buildQuizUpdatePayload(draft, quiz) {
-  return {
-    title: String(draft.title ?? quiz.title ?? "").trim() || null,
-    description: String(draft.description ?? quiz.description ?? "").trim() || null,
-    passing_score: draft.passing_score === undefined ? Number(quiz.passing_score) : Math.min(100, Math.max(0, Number(draft.passing_score) || 0)),
-    time_limit_seconds: draft.time_limit_seconds === undefined
-      ? (quiz.time_limit_seconds ?? null)
-      : parseNullablePositiveInteger(draft.time_limit_seconds),
-  };
-}
-
-function getQuestionAdminEndpoint(questionType, questionId) {
-  const normalizedId = Number(questionId);
-  if (!normalizedId) throw new Error("Missing question id.");
-
-  if (questionType === "multiple_choice") return `/api/v1/admin/multiple-choice-questions/${normalizedId}`;
-  if (questionType === "video_choice") return `/api/v1/admin/video-choice-questions/${normalizedId}`;
-  if (questionType === "sign_to_text") return `/api/v1/admin/sign-to-text-questions/${normalizedId}`;
-
-  throw new Error(`Unsupported question type: ${questionType}`);
-}
-
-function getQuestionCreateEndpoint(questionType) {
-  if (questionType === "multiple_choice") return "/api/v1/admin/multiple-choice-questions";
-  if (questionType === "video_choice") return "/api/v1/admin/video-choice-questions";
-  if (questionType === "sign_to_text") return "/api/v1/admin/sign-to-text-questions";
-
-  throw new Error(`Unsupported question type: ${questionType}`);
-}
-
 export function AdminDashboard({
   user,
   onOpenUserUi,
@@ -376,6 +199,7 @@ export function AdminDashboard({
   const [quizDraftById, setQuizDraftById] = useState({});
   const [newQuestionDraftByQuizId, setNewQuestionDraftByQuizId] = useState({});
   const [questionDraftById, setQuestionDraftById] = useState({});
+  const [vocabCatalogItems, setVocabCatalogItems] = useState([]);
 
   const [newCategory, setNewCategory] = useState({ name: "", slug: "", description: "" });
   const [newPost, setNewPost] = useState({ title: "", slug: "", summary: "", content: "", status: "draft", published_at: "" });
@@ -557,17 +381,6 @@ export function AdminDashboard({
 
   useEffect(() => {
     if (activeSection !== "noi-dung-mooc") return;
-    if (!contentData.lessons.length) return;
-    if (!contentLessonId || !contentData.lessons.some((item) => String(item.id) === String(contentLessonId))) {
-      const firstLessonId = String(contentData.lessons[0].id || "");
-      setContentLessonId(firstLessonId);
-      setLessonItemDraft((prev) => ({ ...prev, lessonId: firstLessonId }));
-      setNewQuizDraft((prev) => ({ ...prev, lesson_id: firstLessonId }));
-    }
-  }, [activeSection, contentData.lessons, contentLessonId]);
-
-  useEffect(() => {
-    if (activeSection !== "noi-dung-mooc") return;
     if (!contentLessonId) return;
     setNewQuizDraft((prev) => ({ ...prev, lesson_id: String(prev.lesson_id || contentLessonId) }));
   }, [activeSection, contentLessonId]);
@@ -576,6 +389,23 @@ export function AdminDashboard({
     if (activeSection !== "noi-dung-mooc" || !contentLessonId) return;
     loadContentLessonDetail(Number(contentLessonId));
   }, [activeSection, contentLessonId]);
+
+  useEffect(() => {
+    if (activeSection !== "noi-dung-mooc" || vocabCatalogItems.length) return;
+
+    let cancelled = false;
+    import("../../../tu_vung.json")
+      .then((module) => {
+        if (!cancelled) setVocabCatalogItems(Array.isArray(module?.default?.items) ? module.default.items : []);
+      })
+      .catch(() => {
+        if (!cancelled) setVocabCatalogItems([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSection, vocabCatalogItems.length]);
 
   const activeSectionState = sectionState[activeSection] || { status: "idle", error: "", data: null };
   const usersData = sectionState["nguoi-dung"]?.data || { users: [] };
@@ -597,9 +427,30 @@ export function AdminDashboard({
       return haystack.includes(query);
     });
   }, [contentData.lessons, contentLessonQuery]);
+
+  useEffect(() => {
+    if (activeSection !== "noi-dung-mooc") return;
+
+    const nextLessonId = resolveVisibleLessonSelection({
+      lessons: contentData.lessons,
+      filteredLessons: filteredContentLessons,
+      currentLessonId: contentLessonId,
+      hasSearchQuery: Boolean(String(contentLessonQuery || "").trim()),
+    });
+
+    if (nextLessonId === String(contentLessonId || "")) return;
+
+    setContentLessonId(nextLessonId);
+    setLessonItemDraft((prev) => ({ ...prev, lessonId: nextLessonId }));
+    setNewQuizDraft((prev) => ({ ...prev, lesson_id: nextLessonId || String(prev.lesson_id || "") }));
+  }, [activeSection, contentData.lessons, filteredContentLessons, contentLessonId, contentLessonQuery]);
   const courseSelectOptions = useMemo(
     () => coursesData.courses.map((item) => ({ id: item.id, label: `${item.id} - ${item.title}` })),
     [coursesData.courses]
+  );
+  const signSlugOptions = useMemo(
+    () => collectSignSlugOptions(contentData.signs, vocabCatalogItems),
+    [contentData.signs, vocabCatalogItems]
   );
 
   async function createUser() {
@@ -958,7 +809,7 @@ export function AdminDashboard({
                   <Field label="Avatar asset id"><Input value={draft.avatar_asset_id ?? item.avatar_asset_id ?? ""} onChange={(e) => setUserDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), avatar_asset_id: e.target.value } }))} /></Field>
                   <Field label="Reset password"><Input type="password" value={draft.password ?? ""} onChange={(e) => setUserDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), password: e.target.value } }))} /></Field>
                   <div className="md:col-span-6 flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-xs font-semibold text-slate-500">Created {formatDate(item.created_at)} Ãƒâ€šÃ‚Â· Updated {formatDate(item.updated_at)}</div>
+                    <div className="text-xs font-semibold text-slate-500">Created {formatDate(item.created_at)} · Updated {formatDate(item.updated_at)}</div>
                     <div className="flex flex-wrap gap-2">
                       <ActionButton onClick={() => runAction(() => updateUser(item), { success: `Updated user #${item.id}.`, reload: ["nguoi-dung", "tong-quan"] })}>Save</ActionButton>
                       <ActionButton danger onClick={() => runAction(() => deleteUser(item), { success: `Deleted user #${item.id}.`, reload: ["nguoi-dung", "tong-quan"] })}>Delete</ActionButton>
@@ -1073,11 +924,11 @@ export function AdminDashboard({
       id: row.sign_id,
       label: `${row.sign_id} - ${row.sign?.title_vi || row.sign?.label || row.sign?.slug || `sign-${row.sign_id}`}`,
     }));
-    const signSlugOptions = signs.map((item) => item.slug).filter(Boolean);
     const currentStatusText = currentContentStatus === "loading" ? "Loading lesson detail..." : typeof currentContentStatus === "string" && currentContentStatus !== "ready" && currentContentStatus !== "idle" ? currentContentStatus : "";
 
     return (
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.3fr]">
+        <datalist id={ADMIN_SIGN_SLUG_LIST_ID}>{signSlugOptions.map((item) => <option key={item.slug} value={item.slug}>{item.label}</option>)}</datalist>
         <Card className="p-4 md:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -1109,7 +960,7 @@ export function AdminDashboard({
                 <div className="rounded-3xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
                   <div>Showing {filteredContentLessons.length} / {lessons.length} lessons</div>
                   <div className="mt-2">Selected: {detail?.title || "No lesson selected"}</div>
-                  {detail ? <div className="mt-1 text-xs text-slate-500">Lesson #{detail.id} Ãƒâ€šÃ‚Â· {detail.slug || "no slug"}</div> : null}
+                  {detail ? <div className="mt-1 text-xs text-slate-500">Lesson #{detail.id} · {detail.slug || "no slug"}</div> : null}
                 </div>
               </>
             ) : <EmptyState title="No lessons" description="Lesson data is required for signs and quiz admin." />}
@@ -1122,7 +973,7 @@ export function AdminDashboard({
               <div>
                 <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Lesson content</div>
                 <div className="mt-2 text-2xl font-black text-slate-950">{detail?.title || "Select a lesson"}</div>
-                {detail ? <div className="mt-2 text-sm font-semibold text-slate-500">Lesson #{detail.id} Ãƒâ€šÃ‚Â· {detail.slug || "no slug"}</div> : null}
+                {detail ? <div className="mt-2 text-sm font-semibold text-slate-500">Lesson #{detail.id} · {detail.slug || "no slug"}</div> : null}
               </div>
               <GhostButton disabled={!contentLessonId} onClick={() => contentLessonId && loadContentLessonDetail(Number(contentLessonId), { force: true })}>Reload detail</GhostButton>
             </div>
@@ -1146,8 +997,7 @@ export function AdminDashboard({
                 <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-600">Add signs</div>
                 <div className="mt-3 space-y-3">
                   <Field label="Lesson"><Select value={lessonItemDraft.lessonId || contentLessonId} onChange={(e) => setLessonItemDraft((prev) => ({ ...prev, lessonId: e.target.value }))}><option value="">-- select --</option>{lessonSelectOptions.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</Select></Field>
-                  <Field label="Sign slugs"><Input value={lessonItemDraft.signSlugs} onChange={(e) => setLessonItemDraft((prev) => ({ ...prev, signSlugs: e.target.value }))} placeholder="xin-chao, cam-on" list="all-sign-slugs" /></Field>
-                  <datalist id="all-sign-slugs">{signSlugOptions.slice(0, 300).map((slug) => <option key={slug} value={slug}>{slug}</option>)}</datalist>
+                  <Field label="Sign slugs"><Input value={lessonItemDraft.signSlugs} onChange={(e) => setLessonItemDraft((prev) => ({ ...prev, signSlugs: e.target.value }))} placeholder="xin-chao, cam-on" list={ADMIN_SIGN_SLUG_LIST_ID} /></Field>
                   <ActionButton onClick={() => runAction(addSignsToLesson, { success: "Added signs to lesson.", reloadContentLesson: true, invalidate: ["bai-hoc"] })}>Add signs</ActionButton>
                 </div>
               </div>
@@ -1210,9 +1060,8 @@ export function AdminDashboard({
                         <Field label="Question type"><Select value={questionCreateDraft.question_type} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, question_type: e.target.value, options: e.target.value === "sign_to_text" ? [] : (questionCreateDraft.options?.length ? questionCreateDraft.options : [createEmptyQuizOptionDraft()]) } }))}>{QUIZ_QUESTION_TYPE_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}</Select></Field>
                         <Field label="Order"><Input type="number" min={0} value={questionCreateDraft.order_index} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, order_index: Number(e.target.value || 0) } }))} /></Field>
                         <Field label="Points"><Input type="number" min={1} value={questionCreateDraft.points} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, points: Number(e.target.value || 1) } }))} /></Field>
-                        {createTypeConfig.showVideoSlug ? <Field label="Video slug" className="xl:col-span-2"><Input value={questionCreateDraft.video_slug} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, video_slug: e.target.value } }))} placeholder="e.g. xin-chao" list={`sign-slugs-${quiz.id}`} /></Field> : null}
+                        {createTypeConfig.showVideoSlug ? <Field label="Video slug" className="xl:col-span-2"><Input value={questionCreateDraft.video_slug} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, video_slug: e.target.value } }))} placeholder="e.g. xin-chao" list={ADMIN_SIGN_SLUG_LIST_ID} /></Field> : null}
                       </div>
-                      <datalist id={`sign-slugs-${quiz.id}`}>{signSlugOptions.slice(0, 300).map((slug) => <option key={slug} value={slug}>{slug}</option>)}</datalist>
                       <Field label={createTypeConfig.questionTextLabel} className="mt-3"><Textarea rows={2} value={questionCreateDraft.question_text} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, question_text: e.target.value } }))} placeholder={createTypeConfig.questionTextPlaceholder} /></Field>
                       {createTypeConfig.showAnswer ? <Field label={createTypeConfig.answerLabel} className="mt-3"><Input value={questionCreateDraft.answer} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, answer: e.target.value } }))} placeholder={createTypeConfig.answerPlaceholder} /></Field> : null}
                       <div className="mt-3 rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">{createTypeConfig.helper}</div>
@@ -1223,11 +1072,11 @@ export function AdminDashboard({
                             <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-600">Options</div>
                             <GhostButton type="button" onClick={() => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, options: [...(questionCreateDraft.options || []), createEmptyQuizOptionDraft()] } }))}>Add option</GhostButton>
                           </div>
+                          <div className="mt-2 text-xs font-semibold text-slate-500">Option key tu dong tao trong UI.</div>
                           <div className="mt-3 space-y-3">
                             {(questionCreateDraft.options || []).map((option, optionIndex) => (
-                              <div key={`${quiz.id}-new-option-${optionIndex}`} className="grid gap-3 rounded-2xl border border-slate-200 p-3 md:grid-cols-5">
-                                <Field label={createTypeConfig.optionKeyLabel}><Input value={option.option_key || ""} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, options: (questionCreateDraft.options || []).map((entry, idx) => idx === optionIndex ? { ...entry, option_key: e.target.value } : entry) } }))} placeholder="Optional" /></Field>
-                                <Field label={createTypeConfig.optionValueLabel} className="md:col-span-2"><Input value={option[createTypeConfig.optionValueField] || ""} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, options: (questionCreateDraft.options || []).map((entry, idx) => idx === optionIndex ? { ...entry, [createTypeConfig.optionValueField]: e.target.value } : entry) } }))} placeholder={createTypeConfig.optionValuePlaceholder} list={createTypeConfig.optionValueField === "video_slug" ? `sign-slug-options-${quiz.id}` : undefined} /></Field>
+                              <div key={`${quiz.id}-new-option-${optionIndex}`} className="grid gap-3 rounded-2xl border border-slate-200 p-3 md:grid-cols-4">
+                                <Field label={createTypeConfig.optionValueLabel} className="md:col-span-2"><Input value={option[createTypeConfig.optionValueField] || ""} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, options: (questionCreateDraft.options || []).map((entry, idx) => idx === optionIndex ? { ...entry, [createTypeConfig.optionValueField]: e.target.value } : entry) } }))} placeholder={createTypeConfig.optionValuePlaceholder} list={createTypeConfig.optionValueField === "video_slug" ? ADMIN_SIGN_SLUG_LIST_ID : undefined} /></Field>
                                 <div className="flex items-end justify-between gap-3 md:col-span-2">
                                   <label className="flex items-center gap-2 pb-3 text-sm font-semibold text-slate-700"><input type="checkbox" checked={!!option.is_correct} onChange={(e) => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, options: (questionCreateDraft.options || []).map((entry, idx) => idx === optionIndex ? { ...entry, is_correct: e.target.checked } : entry) } }))} />Correct</label>
                                   <button type="button" className="pb-3 text-sm font-black text-rose-600 disabled:text-slate-400" disabled={(questionCreateDraft.options || []).length <= 2} onClick={() => setNewQuestionDraftByQuizId((prev) => ({ ...prev, [quiz.id]: { ...questionCreateDraft, options: (questionCreateDraft.options || []).filter((_, idx) => idx !== optionIndex) } }))}>Remove</button>
@@ -1235,7 +1084,6 @@ export function AdminDashboard({
                               </div>
                             ))}
                           </div>
-                          <datalist id={`sign-slug-options-${quiz.id}`}>{signSlugOptions.slice(0, 300).map((slug) => <option key={slug} value={slug}>{slug}</option>)}</datalist>
                         </div>
                       ) : null}
 
@@ -1266,8 +1114,7 @@ export function AdminDashboard({
                             </div>
                             <div className="mt-3 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">Order/points are stored on the quiz link. Current backend exposes link create only, so this admin UI edits question content and deletes/recreates when order changes are needed.</div>
                             <Field label={typeConfig.questionTextLabel} className="mt-3"><Textarea rows={2} value={draft.question_text ?? question.question_text ?? ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), question_text: e.target.value } }))} placeholder={typeConfig.questionTextPlaceholder} /></Field>
-                            {typeConfig.showVideoSlug ? <Field label="Video slug" className="mt-3"><Input value={draft.video_slug ?? question.video_slug ?? ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), video_slug: e.target.value } }))} placeholder="e.g. xin-chao" list={`question-sign-slugs-${question.id}`} /></Field> : null}
-                            <datalist id={`question-sign-slugs-${question.id}`}>{signSlugOptions.slice(0, 300).map((slug) => <option key={slug} value={slug}>{slug}</option>)}</datalist>
+                            {typeConfig.showVideoSlug ? <Field label="Video slug" className="mt-3"><Input value={draft.video_slug ?? question.video_slug ?? ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), video_slug: e.target.value } }))} placeholder="e.g. xin-chao" list={ADMIN_SIGN_SLUG_LIST_ID} /></Field> : null}
                             {typeConfig.showAnswer ? <Field label={typeConfig.answerLabel} className="mt-3"><Input value={draft.answer ?? question.answer ?? ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), answer: e.target.value } }))} placeholder={typeConfig.answerPlaceholder} /></Field> : null}
                             <div className="mt-3 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">{typeConfig.helper}</div>
 
@@ -1277,11 +1124,11 @@ export function AdminDashboard({
                                   <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-600">Options</div>
                                   <GhostButton type="button" onClick={() => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), options: [...editableOptions, createEmptyQuizOptionDraft()] } }))}>Add option</GhostButton>
                                 </div>
+                                <div className="mt-2 text-xs font-semibold text-slate-500">Option key tu dong tao trong UI.</div>
                                 <div className="mt-3 space-y-3">
                                   {editableOptions.map((option, optionIndex) => (
-                                    <div key={`${question.id}-option-${optionIndex}`} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 md:grid-cols-5">
-                                      <Field label={typeConfig.optionKeyLabel}><Input value={option.option_key || ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), options: editableOptions.map((entry, idx) => idx === optionIndex ? { ...entry, option_key: e.target.value } : entry) } }))} placeholder="Optional" /></Field>
-                                      <Field label={typeConfig.optionValueLabel} className="md:col-span-2"><Input value={option[typeConfig.optionValueField] || ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), options: editableOptions.map((entry, idx) => idx === optionIndex ? { ...entry, [typeConfig.optionValueField]: e.target.value } : entry) } }))} placeholder={typeConfig.optionValuePlaceholder} list={typeConfig.optionValueField === "video_slug" ? `question-option-sign-slugs-${question.id}` : undefined} /></Field>
+                                    <div key={`${question.id}-option-${optionIndex}`} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 md:grid-cols-4">
+                                      <Field label={typeConfig.optionValueLabel} className="md:col-span-2"><Input value={option[typeConfig.optionValueField] || ""} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), options: editableOptions.map((entry, idx) => idx === optionIndex ? { ...entry, [typeConfig.optionValueField]: e.target.value } : entry) } }))} placeholder={typeConfig.optionValuePlaceholder} list={typeConfig.optionValueField === "video_slug" ? ADMIN_SIGN_SLUG_LIST_ID : undefined} /></Field>
                                       <div className="flex items-end justify-between gap-3 md:col-span-2">
                                         <label className="flex items-center gap-2 pb-3 text-sm font-semibold text-slate-700"><input type="checkbox" checked={!!option.is_correct} onChange={(e) => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), options: editableOptions.map((entry, idx) => idx === optionIndex ? { ...entry, is_correct: e.target.checked } : entry) } }))} />Correct</label>
                                         <button type="button" className="pb-3 text-sm font-black text-rose-600 disabled:text-slate-400" disabled={editableOptions.length <= 2} onClick={() => setQuestionDraftById((prev) => ({ ...prev, [question.id]: { ...(prev[question.id] || {}), options: editableOptions.filter((_, idx) => idx !== optionIndex) } }))}>Remove</button>
@@ -1289,7 +1136,6 @@ export function AdminDashboard({
                                     </div>
                                   ))}
                                 </div>
-                                <datalist id={`question-option-sign-slugs-${question.id}`}>{signSlugOptions.slice(0, 300).map((slug) => <option key={slug} value={slug}>{slug}</option>)}</datalist>
                               </div>
                             ) : null}
 
@@ -1309,7 +1155,7 @@ export function AdminDashboard({
 
           <Card className="p-5 md:p-6">
             <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Available sign slugs</div>
-            <div className="mt-4 text-sm font-semibold leading-7 text-slate-700">{signs.length ? signs.slice(0, 120).map((item) => item.slug).join(", ") : "No sign data."}</div>
+            <div className="mt-4 text-sm font-semibold leading-7 text-slate-700">{signSlugOptions.length ? signSlugOptions.slice(0, 120).map((item) => item.slug).join(", ") : "No sign data."}</div>
           </Card>
         </div>
       </div>
@@ -1356,7 +1202,7 @@ export function AdminDashboard({
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                       <div className="text-lg font-black text-slate-900">{item.title}</div>
-                      <div className="mt-1 text-xs font-semibold text-slate-500">/{item.slug} Ãƒâ€šÃ‚Â· {item.status || "draft"}</div>
+                      <div className="mt-1 text-xs font-semibold text-slate-500">/{item.slug} · {item.status || "draft"}</div>
                       {item.summary ? <div className="mt-2 text-sm font-semibold text-slate-600">{item.summary}</div> : null}
                     </div>
                     <ActionButton danger onClick={() => runAction(() => deletePost(item), { success: `Deleted post #${item.id}.`, reload: ["blog"] })}>Delete</ActionButton>
@@ -1442,7 +1288,7 @@ export function AdminDashboard({
                     <StatusBadge tone="amber">{item.label || item.sign_slug || "attempt"}</StatusBadge>
                     <StatusBadge tone="green">score {item.final_score ?? item.score ?? "-"}</StatusBadge>
                   </div>
-                  <div className="mt-3 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} Ãƒâ€šÃ‚Â· Lesson {item.lesson_id ?? "-"}</div>
+                  <div className="mt-3 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} · Lesson {item.lesson_id ?? "-"}</div>
                   <div className="mt-1 text-xs font-semibold text-slate-500">Completed {formatDate(item.completed_at || item.created_at)}</div>
                 </div>
               )) : <EmptyState title="No attempts" description={practiceData.attemptsError || "No admin practice attempts returned."} />}
@@ -1455,7 +1301,7 @@ export function AdminDashboard({
               {practiceData.sessions.length ? practiceData.sessions.map((item, index) => (
                 <div key={item.id || item.practice_session_id || index} className="rounded-3xl border border-slate-200 p-4">
                   <div className="text-sm font-black text-slate-900">Session #{item.id || item.practice_session_id || index + 1}</div>
-                  <div className="mt-2 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} Ãƒâ€šÃ‚Â· Lesson {item.lesson_id ?? "-"}</div>
+                  <div className="mt-2 text-sm font-semibold text-slate-700">User {item.user_id ?? "-"} · Lesson {item.lesson_id ?? "-"}</div>
                   <div className="mt-1 text-xs font-semibold text-slate-500">Started {formatDate(item.started_at || item.created_at)}</div>
                 </div>
               )) : <EmptyState title="No sessions" description={practiceData.sessionsError || "No practice sessions returned."} />}

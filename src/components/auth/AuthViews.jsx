@@ -16,7 +16,7 @@ function SignlearnBadge() {
 }
 
 function Input({ className = '', ...props }) {
-  return <input {...props} className={cx('min-h-14 w-full rounded-[20px] border border-slate-200/80 bg-slate-50 px-5 py-4 text-[15px] font-medium text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(59,130,246,0.12)]', className)} />;
+  return <input {...props} className={cx('min-h-14 w-full rounded-[20px] border border-slate-200/80 bg-slate-50 px-5 py-4 text-[15px] font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(59,130,246,0.12)]', className)} />;
 }
 
 function TabButton({ active, children, ...props }) {
@@ -78,7 +78,7 @@ export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, isSubmit
               <TabButton active={isRegister} onClick={() => onModeChange('register')} disabled={isSubmitting}>Đăng ký</TabButton>
             </div>
             <div className={'mt-7'}>
-              <h2 className={'text-3xl font-semibold tracking-[-0.04em] text-slate-950'}>{isRegister ? 'Bắt đầu học cùng SignLearn' : 'Chào mừng quay lại'}</h2>
+              <h2 className={'text-3xl font-semibold tracking-[-0.04em] text-slate-900'}>{isRegister ? 'Bắt đầu học cùng SignLearn' : 'Chào mừng quay lại'}</h2>
               <p className={'mt-2 text-sm leading-6 text-slate-500'}>{isRegister ? 'Tạo tài khoản để lưu tiến độ học và thực hành ký hiệu mỗi ngày.' : 'Đăng nhập để tiếp tục lộ trình học ngôn ngữ ký hiệu của bạn.'}</p>
             </div>
             {errorMessage ? <div className={'mt-5 rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700'}>{errorMessage}</div> : null}
