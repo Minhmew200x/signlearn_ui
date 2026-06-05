@@ -43,7 +43,7 @@ export default function AIPracticePage({ topic, mooc, moocs = [], lessonMaterial
 
   const [cameraOn, setCameraOn] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [message, setMessage] = useState("Sẵn sàng mở camera để đánh giá MOOC.");
+  const [message, setMessage] = useState("Sẵn sàng mở camera để luyện thêm với AI.");
   const [result, setResult] = useState(null);
 
   const moocWords = useMemo(() => getLessonVocabItems(mooc, lessonMaterial).filter(Boolean), [mooc, lessonMaterial]);
@@ -107,7 +107,7 @@ export default function AIPracticePage({ topic, mooc, moocs = [], lessonMaterial
       setResult({ score, passed, hand, motion, clarity });
       onScore(score);
       setIsAnalyzing(false);
-      setMessage(passed ? "Kết quả tốt. Bạn có thể tiếp tục sang MOOC tiếp theo." : "Chưa đạt mức mong muốn. Hãy xem lại video và luyện thêm.");
+      setMessage(passed ? "Kết quả tốt. Bạn có thể qua MOOC tiếp theo bất cứ lúc nào." : "Chưa đạt mức mong muốn. Hãy xem lại video và luyện thêm.");
     }, 1400);
   }
 
@@ -126,11 +126,11 @@ export default function AIPracticePage({ topic, mooc, moocs = [], lessonMaterial
 
       <section className="rounded-[2.4rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-6 text-slate-900 shadow-sm md:min-h-[300px] md:p-10">
         <div className="inline-flex rounded-full bg-blue-600 px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-blue-100">
-          AI đánh giá cuối MOOC
+          AI luyen them sau quiz
         </div>
         <h1 className="mt-4 text-4xl font-black md:text-6xl">{`MOOC ${mooc?.moocNumber || ""}: ${mooc?.lessonTitle || topic.title}`}</h1>
         <p className="mt-3 text-xl font-semibold text-slate-600">
-          Đánh giá ngay sau khi học xong MOOC này ({moocWords.length} từ vựng).
+          Luyện thêm với AI sau khi xong quiz của MOOC này ({moocWords.length} từ vựng).
         </p>
       </section>
 
@@ -142,8 +142,8 @@ export default function AIPracticePage({ topic, mooc, moocs = [], lessonMaterial
               <div className="grid place-items-center p-8 text-center">
                 <div>
                   <div className="text-7xl">📹</div>
-                  <div className="mt-3 text-3xl font-black">Camera chấm điểm MOOC</div>
-                  <p className="mt-2 text-base font-semibold text-slate-300">AI chấm điểm sau mỗi MOOC để mở MOOC kế tiếp.</p>
+                  <div className="mt-3 text-3xl font-black">Camera luyen AI</div>
+                  <p className="mt-2 text-base font-semibold text-slate-300">Phan AI nay la tuy chon de ban luyen them sau quiz.</p>
                 </div>
               </div>
             )}

@@ -394,8 +394,18 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     await refreshCourseProgress([currentTopic.courseId]);
   }
 
-  async function handleQuizCompleted() {
+  async function handleQuizCompleted(result) {
+    if (!currentTopic || !result?.passed) return;
+
+    setProgress((prev) => updateProgressAfterScore(prev, {
+      topicId: currentTopic.id,
+      currentMoocs,
+      selectedMoocIndex,
+      score: Number(result.score || 0),
+    }));
+
     if (!currentMooc?.lessonId || !currentTopic?.courseId) return;
+
     await patchLessonProgress({
       lessonId: currentMooc.lessonId,
       progressPercent: 100,

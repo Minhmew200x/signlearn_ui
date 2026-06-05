@@ -13,7 +13,7 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
         <h1 className="mt-4 text-4xl font-black text-slate-900 md:text-6xl">{topic.title}</h1>
         <p className="mt-3 text-xl font-semibold leading-9 text-slate-700">{topic.desc}</p>
         <div className="mt-5 rounded-2xl bg-white/70 px-5 py-4 text-base font-black text-blue-900">
-          Học lần lượt 5 MOOC. Mỗi MOOC gồm 2-3 từ. Cuối mỗi MOOC sẽ mở Camera AI để chấm điểm.
+          Học lần lượt 5 MOOC. Mỗi MOOC gồm 2-3 từ và một quiz cuối bài. Sau khi qua quiz, bạn có thể luyện thêm bằng AI nếu muốn.
         </div>
         {courseProgress?.progress && (
           <div className="mt-4 rounded-2xl bg-white/80 px-5 py-4 text-sm font-black text-slate-700 ring-1 ring-blue-100">
@@ -24,7 +24,7 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
 
       <section className="mt-7 rounded-[2.2rem] border border-slate-100 bg-white p-6 shadow-sm">
         <h2 className="text-3xl font-black text-slate-900">Danh sách MOOC</h2>
-        <p className="mt-2 text-lg font-semibold text-slate-600">Mỗi lần chỉ mở 1 MOOC theo thứ tự. Chấm AI xong MOOC trước mới mở được MOOC sau.</p>
+        <p className="mt-2 text-lg font-semibold text-slate-600">Mỗi lần chỉ mở 1 MOOC theo thứ tự. Qua quiz của MOOC hiện tại để mở MOOC sau; AI là phần luyện thêm.</p>
 
         {!moocs.length ? (
           <div className="mt-5 rounded-2xl border border-dashed border-slate-300 p-6 text-center text-lg font-semibold text-slate-500">

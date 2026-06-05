@@ -5,9 +5,14 @@ export function isQuizUnlocked({ activeWordIndex = 0, vocabItems = [], hasQuiz =
   return activeWordIndex >= totalWords;
 }
 
-export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null }) {
+export function isQuizPassed(quizResult) {
+  return Boolean(quizResult?.passed);
+}
+
+export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, showAiPracticeStep = false }) {
   const words = Array.isArray(vocabItems) ? vocabItems : [];
   const activeQuiz = isQuizUnlocked({ activeWordIndex, vocabItems: words, hasQuiz });
+  const passedQuiz = isQuizPassed(quizResult);
   const items = words.map((item, index) => ({
     id: `word-${item?.id || index}`,
     type: 'word',
@@ -20,9 +25,20 @@ export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], has
     items.push({
       id: 'quiz',
       type: 'quiz',
-      label: 'Quiz cuoi bai',
-      status: quizResult ? 'completed' : activeQuiz ? 'active' : 'upcoming',
-      explanation: 'Tra loi quiz sau khi hoc xong cac tu.',
+      label: 'Quiz cuối bài',
+      status: passedQuiz ? 'completed' : activeQuiz ? 'active' : 'upcoming',
+      explanation: 'Ôn tập lại những gì đã học',
+    });
+  }
+
+  if (showAiPracticeStep) {
+    const aiUnlocked = hasQuiz ? passedQuiz : words.length === 0 || activeWordIndex >= Math.max(words.length - 1, 0);
+    items.push({
+      id: 'ai-practice',
+      type: 'ai',
+      label: 'Thực hành bằng AI (optional)',
+      status: aiUnlocked ? 'active' : 'upcoming',
+      explanation: 'Sau khi qua quiz, ban co the sang AI de luyen them.',
     });
   }
 

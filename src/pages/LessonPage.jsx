@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../app/lib/api.js';
 import { getQuizQuestions } from '../app/lib/quiz.js';
 import { buildQuizSubmitPayload, getUnansweredQuizQuestionIds } from '../app/lib/quizSubmission.js';
-import { buildLessonFlowItems, isQuizUnlocked } from '../app/lib/lessonFlow.js';
+import { buildLessonFlowItems, isQuizPassed, isQuizUnlocked } from '../app/lib/lessonFlow.js';
 import { getLessonVideoPlaybackProps } from '../app/lib/videoPlayback.js';
 import { AppButton } from '../components/app/AppShell.jsx';
 
@@ -196,7 +196,9 @@ export default function LessonPage({
   const isLastWord = !isQuizStep && activeWordIndex >= lastWordIndex;
   const totalSteps = Math.max(vocabItems.length + (hasQuiz ? 1 : 0), 1);
   const currentStep = Math.min(activeWordIndex + 1, totalSteps);
-  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult });
+  const passedQuiz = isQuizPassed(quizResult);
+  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, showAiPracticeStep: true });
+  const nextActionLabel = !isLastWord ? 'Từ tiếp theo' : hasQuiz ? 'Sang quiz cuối bài' : 'Sang luyện AI';
 
   async function ensureMoocConfirmed() {
     if (isMoocConfirmed) return true;
@@ -212,16 +214,23 @@ export default function LessonPage({
     }
   }
 
-  async function handleConfirmMooc() {
-    await ensureMoocConfirmed();
-  }
-
-  async function handleEnterQuiz() {
+  async function handleNextStep() {
     if (isQuizStep) return;
-    const confirmed = await ensureMoocConfirmed();
-    if (confirmed) {
-      setActiveWordIndex(quizStepIndex);
+
+    if (!isLastWord) {
+      setActiveWordIndex((prev) => Math.min(prev + 1, lastWordIndex));
+      return;
     }
+
+    const confirmed = await ensureMoocConfirmed();
+    if (!confirmed) return;
+
+    if (hasQuiz) {
+      setActiveWordIndex(quizStepIndex);
+      return;
+    }
+
+    onCompleteMooc?.();
   }
 
   function resetQuizState() {
@@ -285,10 +294,10 @@ export default function LessonPage({
         <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
           {isQuizStep ? (
             <div className="rounded-[1.6rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-6">
-              <div className="text-sm font-black uppercase tracking-wide text-blue-700">Da xong phan tu vung</div>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Bat dau quiz cuoi bai</h2>
+              <div className="text-sm font-black uppercase tracking-wide text-blue-700">Xong từ vựng</div>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Bắt đầu quiz cuối bài</h2>
               <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-600">
-                Phan video tu vung da tach rieng. Hoan thanh quiz nay de khoa lesson va mo MOOC tiep theo.
+                Phần video từ vựng đã tách riêng. Qua quiz này để hoàn thành bài, sau đó bạn có thể qua MOOC tiếp theo hoặc luyện thêm bằng AI.
               </p>
               <div className="mt-4 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
                 <span className="rounded-full bg-white px-3 py-1">{quizQuestions.length} cau hoi</span>
@@ -322,12 +331,18 @@ export default function LessonPage({
                 <h2 className="mt-2 text-2xl font-black text-slate-900">{activeWord?.word || mooc.lessonTitle}</h2>
                 <p className="mt-2 text-base font-semibold leading-7 text-slate-600">{activeWord?.explanation || 'Chua co giai thich.'}</p>
               </div>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <AppButton onClick={handleNextStep} disabled={savingProgress}>
+                  {savingProgress ? 'Dang luu...' : nextActionLabel}
+                </AppButton>
+              </div>
             </>
           )}
 
           {hasQuiz && isQuizUnlocked({ activeWordIndex, vocabItems, hasQuiz }) ? (
             <div className="mt-6 rounded-[1.6rem] border border-blue-100 bg-blue-50 p-5">
-              <div className="text-sm font-black uppercase tracking-wide text-blue-700">Quiz cuoi bai</div>
+              <div className="text-sm font-black uppercase tracking-wide text-blue-700">Quiz cuối bài</div>
               <h2 className="mt-2 text-2xl font-black text-slate-900">{lessonMaterial.quiz.title}</h2>
               {lessonMaterial.quiz.description ? <p className="mt-2 text-base font-semibold text-slate-600">{lessonMaterial.quiz.description}</p> : null}
 
@@ -354,7 +369,7 @@ export default function LessonPage({
 
               {unansweredQuestionIds.length > 0 && !quizResult ? (
                 <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-800">
-                  Can tra loi het {quizQuestions.length} cau hoi truoc khi nop quiz.
+                  Cần trả lời hết {quizQuestions.length} câu hỏi trước khi nộp quiz.
                 </div>
               ) : null}
 
@@ -362,7 +377,7 @@ export default function LessonPage({
 
               {quizResult ? (
                 <div className={`mt-4 rounded-2xl p-3 text-sm font-black ${quizResult.passed ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
-                  Diem quiz: {quizResult.score}/100 | Dung {quizResult.correct_count}/{quizResult.total_questions} | {quizResult.passed ? 'Dat' : 'Chua dat'}
+                  Điểm quiz: {quizResult.score}/100 | Đúng {quizResult.correct_count}/{quizResult.total_questions} | {quizResult.passed ? 'ạn đã hoàn thành quiz và qua màn.' : 'Chưa qua môn, hãy làm lại quiz.'}
                 </div>
               ) : null}
 
@@ -370,14 +385,26 @@ export default function LessonPage({
                 <AppButton onClick={submitQuiz} disabled={submittingQuiz}>
                   {submittingQuiz ? 'Dang nop...' : 'Nop quiz'}
                 </AppButton>
-                {quizResult ? <AppButton onClick={resetQuizState} variant="soft">Lam lai quiz</AppButton> : null}
-                {quizResult && hasNextMooc ? <AppButton onClick={onGoNextMooc} variant="dark">Sang MOOC tiep theo</AppButton> : null}
-                {quizResult ? <AppButton onClick={onCompleteMooc} variant="soft">Mo AI practice</AppButton> : null}
+                {quizResult ? <AppButton onClick={resetQuizState} variant="soft">Làm lại quiz</AppButton> : null}
+                {passedQuiz && hasNextMooc ? <AppButton onClick={onGoNextMooc} variant="dark">Sang MOOC tiếp theo</AppButton> : null}
               </div>
+
+              {passedQuiz ? (
+                <div className="mt-4 rounded-[1.4rem] border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-emerald-50 p-5">
+                  <div className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Luyện thêm chút nhé</div>
+                  <h3 className="mt-2 text-xl font-black text-slate-900">Thực hành bằng AI (optional)</h3>
+                  <p className="mt-2 text-sm font-semibold leading-7 text-slate-600">
+                    Quiz đã qua. Bạn có thể sang box AI để luyện thêm trước khi qua MOOC tiếp theo.
+                  </p>
+                  <div className="mt-4">
+                    <AppButton onClick={onCompleteMooc} variant="soft">Mở AI practice</AppButton>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : hasQuiz ? (
             <div className="mt-6 rounded-[1.6rem] border border-amber-100 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
-              {isLastWord ? 'Xac nhan hoan thanh phan tu vung roi bam de sang quiz cuoi bai.' : `Hoc het ${vocabItems.length} tu trong MOOC nay de mo quiz cuoi bai.`}
+              {isLastWord ? 'Đã đến từ cuối cùng. Bấm nút next để sang quiz cuối bài.' : `Học hết ${vocabItems.length} từ trong MOOC này để mở quiz cuối bài.`}
             </div>
           ) : null}
         </section>
@@ -385,9 +412,9 @@ export default function LessonPage({
         <aside className="space-y-5">
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-2xl font-black text-slate-900">Lo trinh dang hoc</h2>
+              <h2 className="text-2xl font-black text-slate-900">Lộ trình đang học</h2>
               <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
-                {currentStep}/{totalSteps} buoc
+                {currentStep}/{totalSteps} bước
               </span>
             </div>
             <div className="mt-4 space-y-3">
@@ -396,6 +423,8 @@ export default function LessonPage({
                 const isActive = item.status === 'active';
                 const marker = item.type === 'quiz'
                   ? (isCompleted ? '✓' : 'Q')
+                  : item.type === 'ai'
+                    ? 'AI'
                   : (isCompleted ? '✓' : `${Math.min(index + 1, vocabItems.length)}`);
 
                 return (
@@ -421,49 +450,6 @@ export default function LessonPage({
                 );
               })}
             </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-black text-slate-900">Dieu huong MOOC</h2>
-            <div className="mt-4 grid gap-3">
-              {!isLastWord && !isQuizStep ? (
-                <AppButton onClick={() => setActiveWordIndex((prev) => Math.min(prev + 1, lastWordIndex))}>Tu tiep theo</AppButton>
-              ) : (
-                <>
-                  <button
-                    onClick={handleConfirmMooc}
-                    disabled={isMoocConfirmed || savingProgress}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition ${isMoocConfirmed ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}
-                  >
-                    {isMoocConfirmed ? 'Da xac nhan hoan thanh MOOC nay' : '1) Xac nhan hoan thanh MOOC nay'}
-                  </button>
-
-                  {hasQuiz && !isQuizStep ? (
-                    <AppButton onClick={handleEnterQuiz} variant="dark" disabled={savingProgress}>
-                      2) Sang quiz cuoi bai
-                    </AppButton>
-                  ) : null}
-
-                  {isMoocConfirmed && hasNextMooc && !hasQuiz ? <AppButton onClick={onGoNextMooc} variant="dark">2) Sang MOOC tiep theo</AppButton> : null}
-
-                  {!hasQuiz && !isQuizStep ? (
-                    <AppButton onClick={onCompleteMooc} disabled={!isMoocConfirmed}>
-                      2) Mo camera AI cham diem
-                    </AppButton>
-                  ) : null}
-                </>
-              )}
-            </div>
-
-            <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
-              {hasQuiz
-                ? (isQuizStep
-                  ? 'Ban dang o buoc quiz. Hoan thanh quiz xong se mo thao tac sang MOOC tiep theo.'
-                  : isLastWord
-                    ? 'Tu cuoi cung da tach rieng. Xac nhan xong roi bam de sang quiz, khong tron chung voi man hinh sign nua.'
-                    : 'Bam Tu tiep theo de di het danh sach tu, sau do vao buoc quiz rieng o cuoi lesson.')
-                : 'Ban da xem het tu trong MOOC nay. Mo camera de AI cham diem roi mo MOOC tiep theo.'}
-            </p>
           </section>
         </aside>
       </div>

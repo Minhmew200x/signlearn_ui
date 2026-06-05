@@ -13,7 +13,7 @@ import {
   getQuizQuestionTypeConfig,
 } from "../../app/lib/quizAdmin.js";
 import { collectSignSlugOptions } from "../../app/lib/adminSignSlugs.js";
-import { resolveVisibleLessonSelection } from "../../app/lib/adminDashboardContent.js";
+import { resolveQuizCreateAvailability, resolveVisibleLessonSelection } from "../../app/lib/adminDashboardContent.js";
 import { makeDashboardPath } from "../../app/lib/routing.js";
 
 const LEVEL_OPTIONS = ["beginner", "intermediate", "advanced"];
@@ -602,6 +602,15 @@ export function AdminDashboard({
   }
 
   async function createQuiz() {
+    const quizCreateAvailability = resolveQuizCreateAvailability({
+      contentLessonId,
+      draftLessonId: newQuizDraft.lesson_id,
+      contentDetailsByLessonId,
+    });
+    if (quizCreateAvailability.isLocked) {
+      throw new Error(`Lesson ${quizCreateAvailability.lessonId} already has a quiz.`);
+    }
+
     const payload = buildQuizCreatePayload(newQuizDraft, contentLessonId);
     const createdQuiz = await apiRequest("/api/v1/admin/quizzes", {
       method: "POST",
@@ -920,6 +929,11 @@ export function AdminDashboard({
     const detail = currentContentDetail?.detail;
     const quizzes = currentContentDetail?.quizzes || [];
     const signRows = lessonDetailSignRows(detail);
+    const quizCreateAvailability = resolveQuizCreateAvailability({
+      contentLessonId,
+      draftLessonId: newQuizDraft.lesson_id,
+      contentDetailsByLessonId,
+    });
     const lessonSignOptions = signRows.map((row) => ({
       id: row.sign_id,
       label: `${row.sign_id} - ${row.sign?.title_vi || row.sign?.label || row.sign?.slug || `sign-${row.sign_id}`}`,
@@ -1014,17 +1028,22 @@ export function AdminDashboard({
               <StatusBadge tone="green">{quizzes.length} quizzes</StatusBadge>
             </div>
 
-            <div className="mt-5 rounded-3xl bg-slate-50 p-4">
+            <div className={cx("mt-5 rounded-3xl p-4 transition", quizCreateAvailability.isLocked ? "bg-slate-200/80 ring-1 ring-slate-300" : "bg-slate-50")}>
               <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-600">Create quiz</div>
+              {quizCreateAvailability.isLocked ? (
+                <div className="mt-3 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
+                  Lesson {quizCreateAvailability.lessonId} da co {quizCreateAvailability.quizCount} quiz. Moi lesson chi duoc gan 1 quiz.
+                </div>
+              ) : null}
               <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                <Field label="Title" className="xl:col-span-2"><Input value={newQuizDraft.title} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, title: e.target.value }))} placeholder="Lesson quiz title" /></Field>
-                <Field label="Passing score"><Input type="number" min={0} max={100} value={newQuizDraft.passing_score} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, passing_score: Number(e.target.value || 0) }))} /></Field>
-                <Field label="Time limit (sec)"><Input type="number" min={1} value={newQuizDraft.time_limit_seconds} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, time_limit_seconds: e.target.value }))} placeholder="Optional" /></Field>
-                <Field label="Lesson id"><Input value={newQuizDraft.lesson_id || contentLessonId} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, lesson_id: e.target.value }))} /></Field>
+                <Field label="Title" className="xl:col-span-2"><Input disabled={quizCreateAvailability.isLocked} value={newQuizDraft.title} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, title: e.target.value }))} placeholder="Lesson quiz title" /></Field>
+                <Field label="Passing score"><Input disabled={quizCreateAvailability.isLocked} type="number" min={0} max={100} value={newQuizDraft.passing_score} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, passing_score: Number(e.target.value || 0) }))} /></Field>
+                <Field label="Time limit (sec)"><Input disabled={quizCreateAvailability.isLocked} type="number" min={1} value={newQuizDraft.time_limit_seconds} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, time_limit_seconds: e.target.value }))} placeholder="Optional" /></Field>
+                <Field label="Lesson id"><Input disabled={quizCreateAvailability.isLocked} value={newQuizDraft.lesson_id || contentLessonId} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, lesson_id: e.target.value }))} /></Field>
               </div>
-              <Field label="Description" className="mt-3"><Textarea rows={2} value={newQuizDraft.description} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, description: e.target.value }))} placeholder="Optional quiz description" /></Field>
+              <Field label="Description" className="mt-3"><Textarea disabled={quizCreateAvailability.isLocked} rows={2} value={newQuizDraft.description} onChange={(e) => setNewQuizDraft((prev) => ({ ...prev, description: e.target.value }))} placeholder="Optional quiz description" /></Field>
               <div className="mt-3 flex flex-wrap gap-2">
-                <ActionButton onClick={() => runAction(createQuiz, { success: "Created quiz.", reloadContentLesson: true })}>Create quiz</ActionButton>
+                <ActionButton disabled={quizCreateAvailability.isLocked} onClick={() => runAction(createQuiz, { success: "Created quiz.", reloadContentLesson: true })}>Create quiz</ActionButton>
                 <GhostButton onClick={() => setNewQuizDraft(createEmptyQuizDraft({ lesson_id: String(contentLessonId || "") }))}>Reset</GhostButton>
               </div>
             </div>
