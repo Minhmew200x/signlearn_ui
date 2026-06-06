@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { apiRequest, assertListResponseShape } from "../app/lib/api.js";
+import { getLessonVideoPlaybackProps } from "../app/lib/videoPlayback.js";
 import { buildPracticeAttemptPayload, getLessonPracticeTargets, getPracticeReferenceVideoUrl } from "../app/lib/practice.js";
+import { getScoreAdvice } from "../app/lib/practiceScoring.js";
 import { AppButton } from "../components/app/AppShell.jsx";
 import { createPracticeWebcamClient } from "../../practice-webcam-client.js";
 
@@ -23,31 +25,6 @@ const VERDICT_TONE = {
   pass: "bg-amber-500 text-white",
   retry: "bg-rose-600 text-white",
 };
-
-function ScoreBar({ label, value }) {
-  const safeValue = Math.max(0, Math.min(100, Math.round(Number(value || 0))));
-
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between text-sm font-black text-slate-700">
-        <span>{label}</span>
-        <span>{safeValue}/100</span>
-      </div>
-      <div className="h-3 rounded-full bg-slate-100">
-        <div className="h-3 rounded-full bg-blue-600" style={{ width: `${safeValue}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function MetricRow({ label, value }) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-      <span>{label}</span>
-      <span className="font-black text-slate-900">{value}</span>
-    </div>
-  );
-}
 
 export default function AIPracticePage({
   topic,
@@ -72,11 +49,11 @@ export default function AIPracticePage({
   const [statusMessage, setStatusMessage] = useState("Chọn từ vựng trong lesson để nạp worker chấm điểm AI.");
   const [cameraOn, setCameraOn] = useState(false);
   const [countdownValue, setCountdownValue] = useState(0);
-  const [resourceBundle, setResourceBundle] = useState(null);
-  const [referenceVideoUrl, setReferenceVideoUrl] = useState(null);
+  const [scoringConfig, setScoringConfig] = useState(null);
   const [result, setResult] = useState(null);
   const [persistedAttempt, setPersistedAttempt] = useState(null);
   const [persistError, setPersistError] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   const practiceTargets = useMemo(
     () => getLessonPracticeTargets({ mooc, lessonMaterial, signs }),
@@ -85,6 +62,15 @@ export default function AIPracticePage({
   const selectedTarget = useMemo(
     () => practiceTargets.find((item) => item.signSlug === selectedTargetSlug) || practiceTargets[0] || null,
     [practiceTargets, selectedTargetSlug],
+  );
+  const previewVideoUrl = selectedTarget?.videoUrl || getPracticeReferenceVideoUrl(selectedTarget);
+  const previewVideoPlaybackProps = useMemo(
+    () => ({
+      ...getLessonVideoPlaybackProps(),
+      controlsList: "nodownload noplaybackrate nofullscreen",
+      disablePictureInPicture: true,
+    }),
+    [],
   );
 
   useEffect(() => {
@@ -140,48 +126,45 @@ export default function AIPracticePage({
       }
 
       setPracticeStatus("loading_resources");
-      setStatusMessage(`Đang tải reference, model và config cho ${selectedTarget.word}...`);
+      setStatusMessage(`Đang tải model và config chấm điểm cho ${selectedTarget.word}...`);
       setCameraOn(false);
       setCountdownValue(0);
-      setReferenceVideoUrl(selectedTarget.videoUrl || null);
-      setResourceBundle(null);
+      setScoringConfig(null);
       setResult(null);
       setPersistedAttempt(null);
       setPersistError("");
+      setUploadError("");
 
       try {
-        const [createdClient, referenceVideo] = await Promise.all([
-          createPracticeWebcamClient({
-            signSlug: selectedTarget.signSlug,
-            videoElement: videoRef.current,
-            uploadArtifacts: true,
-            onReady: ({ reference, modelAsset, scoringConfig }) => {
-              if (cancelled) return;
-              setResourceBundle({ reference, modelAsset, scoringConfig });
-            },
-            onStatus: ({ message }) => {
-              if (!cancelled) setStatusMessage(message);
-            },
-            onPhase: ({ phase, meta }) => {
-              if (cancelled) return;
-              setPracticeStatus(phase);
-              if (phase === "worker_ready") setCameraOn(false);
-              if (phase === "camera_preview_on") setCameraOn(true);
-              if (phase === "countdown") setCountdownValue(Number(meta?.remaining || 0));
-              if (phase !== "countdown") setCountdownValue(0);
-            },
-            onError: (error) => {
-              if (cancelled) return;
-              setPracticeStatus("error");
-              setStatusMessage(error?.message || "Worker chấm điểm AI bị lỗi.");
-            },
-            onArtifactUploadError: (error) => {
-              if (cancelled) return;
-              setPersistError(error?.message || "Upload artifact thất bại, nhưng điểm AI vẫn được giữ local.");
-            },
-          }),
-          Promise.resolve(getPracticeReferenceVideoUrl(selectedTarget) || selectedTarget.videoUrl || null),
-        ]);
+        const createdClient = await createPracticeWebcamClient({
+          signSlug: selectedTarget.signSlug,
+          videoElement: videoRef.current,
+          uploadArtifacts: true,
+          onReady: ({ scoringConfig: nextScoringConfig }) => {
+            if (cancelled) return;
+            setScoringConfig(nextScoringConfig || null);
+          },
+          onStatus: ({ message }) => {
+            if (!cancelled) setStatusMessage(message);
+          },
+          onPhase: ({ phase, meta }) => {
+            if (cancelled) return;
+            setPracticeStatus(phase);
+            if (phase === "worker_ready") setCameraOn(false);
+            if (phase === "camera_preview_on") setCameraOn(true);
+            if (phase === "countdown") setCountdownValue(Number(meta?.remaining || 0));
+            if (phase !== "countdown") setCountdownValue(0);
+          },
+          onError: (error) => {
+            if (cancelled) return;
+            setPracticeStatus("error");
+            setStatusMessage(error?.message || "Worker chấm điểm AI bị lỗi.");
+          },
+          onArtifactUploadError: (error) => {
+            if (cancelled) return;
+            setUploadError(error?.message || "Lưu video của bạn lên hệ thống thất bại.");
+          },
+        });
 
         if (cancelled) {
           await createdClient.destroy();
@@ -190,7 +173,6 @@ export default function AIPracticePage({
 
         nextClient = createdClient;
         clientRef.current = createdClient;
-        setReferenceVideoUrl(referenceVideo || selectedTarget.videoUrl || null);
       } catch (error) {
         if (cancelled) return;
         setPracticeStatus("error");
@@ -266,6 +248,7 @@ export default function AIPracticePage({
     }
 
     setPersistError("");
+    setUploadError("");
     setPersistedAttempt(null);
     setResult(null);
 
@@ -290,8 +273,12 @@ export default function AIPracticePage({
   if (!topic || !mooc) return null;
 
   const verdictTone = VERDICT_TONE[result?.verdict] || VERDICT_TONE.retry;
-  const referenceMeta = resourceBundle?.reference || null;
-  const componentScores = result?.componentScores || {};
+  const scoreAdvice = result
+    ? getScoreAdvice({
+      finalScore: Number(result.finalScore || 0),
+      scoringConfig,
+    })
+    : "";
 
   return (
     <main className="mx-auto w-full max-w-[1600px] px-5 py-10">
@@ -329,11 +316,6 @@ export default function AIPracticePage({
                 {selectedTarget?.signSlug ? `sign_slug: ${selectedTarget.signSlug}` : "Lesson này chưa có sign slug hợp lệ để chấm AI."}
               </p>
             </div>
-            {referenceMeta?.version ? (
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600 ring-1 ring-slate-100">
-                Reference version: <span className="font-black text-slate-900">{referenceMeta.version}</span>
-              </div>
-            ) : null}
           </div>
 
           <div className="mt-5 relative grid aspect-video overflow-hidden rounded-[1.5rem] bg-blue-950 text-white">
@@ -387,15 +369,54 @@ export default function AIPracticePage({
           </div>
 
           <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-base font-semibold leading-7 text-slate-700">{statusMessage}</p>
+          {uploadError ? <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">{uploadError}</div> : null}
           {persistError ? <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">{persistError}</div> : null}
           {signsError ? <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">{signsError}</div> : null}
         </section>
 
         <aside className="space-y-5">
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900">Video mẫu</h2>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
+                  Video hành động cần chấm. Tự loop liên tục để bạn nhìn theo khi bật webcam.
+                </p>
+              </div>
+              {selectedTarget?.word ? (
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
+                  {selectedTarget.word}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-slate-100 bg-blue-950">
+              <div className="aspect-video">
+                {previewVideoUrl ? (
+                  <video
+                    key={previewVideoUrl}
+                    className="h-full w-full object-contain bg-blue-950"
+                    src={previewVideoUrl}
+                    {...previewVideoPlaybackProps}
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center px-6 text-center text-white">
+                    <div>
+                      <div className="text-lg font-black">Chưa có video mẫu</div>
+                      <p className="mt-2 text-sm font-semibold text-slate-300">
+                        Target này chưa có nguồn video để hiển thị bên phải.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
             <h2 className="text-2xl font-black text-slate-900">Từ vựng trong lesson</h2>
             <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
-              {signsLoading ? "Đang tải sign catalog..." : "Chọn một từ trong lesson. Worker sẽ nạp reference-keypoints, model và config cho sign đó trước khi mở camera."}
+              {signsLoading ? "Đang tải sign catalog..." : "Chọn một từ trong lesson. Worker sẽ nạp model và config chấm điểm cho sign đó trước khi mở camera."}
             </p>
             <div className="mt-4 flex max-h-80 flex-wrap gap-2 overflow-auto rounded-2xl bg-blue-50 p-4">
               {practiceTargets.map((item) => {
@@ -415,27 +436,7 @@ export default function AIPracticePage({
           </section>
 
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-black text-slate-900">Reference</h2>
-            {referenceVideoUrl ? (
-              <div className="mt-4 overflow-hidden rounded-2xl bg-blue-950">
-                <div className="aspect-video overflow-hidden">
-                  <video className="h-full w-full object-cover bg-blue-950" src={referenceVideoUrl} controls muted playsInline preload="metadata" />
-                </div>
-              </div>
-            ) : (
-              <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">Không có reference video riêng, đang dùng metadata từ lesson/sign.</div>
-            )}
-
-            <div className="mt-4 space-y-3">
-              <MetricRow label="reference_video" value={referenceMeta?.reference_video || selectedTarget?.referenceVideo || "--"} />
-              <MetricRow label="version" value={referenceMeta?.version || selectedTarget?.referenceVersion || "--"} />
-              <MetricRow label="algorithm" value={resourceBundle?.scoringConfig?.algorithm || "dtw-cosine"} />
-              <MetricRow label="model asset" value={resourceBundle?.modelAsset?.modelFile || "holistic_landmarker.task"} />
-            </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-black text-slate-900">Kết quả AI</h2>
+            <h2 className="text-2xl font-black text-slate-900">Kết quả cuối</h2>
             {!result ? (
               <div className="mt-4 rounded-2xl bg-slate-50 p-5 text-center text-base font-semibold text-slate-500">Chưa có kết quả. Flow chuẩn: worker ready → camera preview on → countdown → recording → processing → done.</div>
             ) : (
@@ -443,19 +444,13 @@ export default function AIPracticePage({
                 <div className={`rounded-2xl p-5 text-center ${verdictTone}`}>
                   <div className="text-sm font-black uppercase tracking-[0.16em]">{result.verdict}</div>
                   <div className="mt-2 text-5xl font-black">{result.finalScore}/100</div>
-                  <div className="mt-2 text-sm font-semibold">{selectedTarget?.word} • {result.frameCount} frame • tracking {(Number(result.trackingRatio || 0) * 100).toFixed(0)}%</div>
+                  <div className="mt-2 text-sm font-semibold">{selectedTarget?.word}</div>
                 </div>
 
-                <MetricRow label="dtw_score" value={componentScores.dtw_score ?? "--"} />
-                <MetricRow label="hand_score" value={componentScores.hand_score ?? "--"} />
-                <MetricRow label="pose_score" value={componentScores.pose_score ?? "--"} />
-                <MetricRow label="motion_score" value={componentScores.motion_score ?? "--"} />
-                <MetricRow label="trackingRatio" value={result.trackingRatio ?? "--"} />
-                {result.referenceVersion ? <MetricRow label="reference version" value={result.referenceVersion} /> : null}
-
-                <ScoreBar label="Hand" value={componentScores.hand_score} />
-                <ScoreBar label="Pose" value={componentScores.pose_score} />
-                <ScoreBar label="Motion / Speed" value={componentScores.speed_score ?? componentScores.motion_score} />
+                <div className="rounded-2xl bg-slate-50 p-4 text-slate-700">
+                  <div className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Lời khuyên</div>
+                  <p className="mt-2 text-base font-semibold leading-7">{scoreAdvice}</p>
+                </div>
 
                 {persistedAttempt ? (
                   <div className="rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">

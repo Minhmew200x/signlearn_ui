@@ -7,7 +7,7 @@ import {
   getLessonPracticeTargets,
   getLessonQuizTitle,
 } from "../src/app/lib/practice.js";
-import { buildScoreSummary } from "../src/app/lib/practiceScoring.js";
+import { buildScoreSummary, getScoreAdvice } from "../src/app/lib/practiceScoring.js";
 
 test("getLessonPracticeTargets uses lesson vocab and enriches with sign catalog metadata", () => {
   const targets = getLessonPracticeTargets({
@@ -106,6 +106,31 @@ test("buildPracticeAttemptPayload matches backend practice attempt contract", ()
     },
     status: "completed",
   });
+});
+
+test("getScoreAdvice returns threshold-based copy for excellent, good, pass, and retry", () => {
+  const scoringConfig = {
+    excellentThreshold: 90,
+    goodThreshold: 75,
+    passThreshold: 60,
+  };
+
+  assert.equal(
+    getScoreAdvice({ finalScore: 95, scoringConfig }),
+    "Rat tot. Ban co the chuyen sang bai tiep theo.",
+  );
+  assert.equal(
+    getScoreAdvice({ finalScore: 80, scoringConfig }),
+    "Tot. Hay luyen them de tang do on dinh va len muc excellent.",
+  );
+  assert.equal(
+    getScoreAdvice({ finalScore: 63, scoringConfig }),
+    "Ban da dat muc co ban. Nen luyen lai de tang do chinh xac.",
+  );
+  assert.equal(
+    getScoreAdvice({ finalScore: 40, scoringConfig }),
+    "Chua dat. Hay xem lai dong tac va thu quay lai mot lan nua.",
+  );
 });
 
 test("buildScoreSummary applies weights, penalty, clamp, and verdict thresholds", () => {

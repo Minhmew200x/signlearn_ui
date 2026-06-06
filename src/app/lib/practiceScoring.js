@@ -18,6 +18,23 @@ export function getVerdict(finalScore, scoringConfig = {}) {
   return 'retry';
 }
 
+export function getScoreAdvice({ finalScore = 0, scoringConfig = {} } = {}) {
+  const excellentThreshold = Number(scoringConfig.excellentThreshold || 90);
+  const goodThreshold = Number(scoringConfig.goodThreshold || 75);
+  const passThreshold = Number(scoringConfig.passThreshold || 60);
+
+  if (Number(finalScore || 0) >= excellentThreshold) {
+    return 'Rat tot. Ban co the chuyen sang bai tiep theo.';
+  }
+  if (Number(finalScore || 0) >= goodThreshold) {
+    return 'Tot. Hay luyen them de tang do on dinh va len muc excellent.';
+  }
+  if (Number(finalScore || 0) >= passThreshold) {
+    return 'Ban da dat muc co ban. Nen luyen lai de tang do chinh xac.';
+  }
+  return 'Chua dat. Hay xem lai dong tac va thu quay lai mot lan nua.';
+}
+
 export function buildScoreSummary({ componentScores = {}, trackingRatio = 0, handTrackingRatio = 0, scoringConfig = {} } = {}) {
   const handWeight = Number(scoringConfig.handWeight || 0.45);
   const poseWeight = Number(scoringConfig.poseWeight || 0.35);

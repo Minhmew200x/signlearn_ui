@@ -12,6 +12,7 @@ import {
   getQuestionCreateEndpoint,
   getQuizQuestionTypeConfig,
 } from "../../app/lib/quizAdmin.js";
+import { createAiConfigDraft, getAiConfigEndpoint, normalizeAiConfigPatchPayload } from "../../app/lib/aiConfig.js";
 import { collectSignSlugOptions } from "../../app/lib/adminSignSlugs.js";
 import { resolveQuizCreateAvailability, resolveVisibleLessonSelection } from "../../app/lib/adminDashboardContent.js";
 import { makeDashboardPath } from "../../app/lib/routing.js";
@@ -200,6 +201,9 @@ export function AdminDashboard({
   const [newQuestionDraftByQuizId, setNewQuestionDraftByQuizId] = useState({});
   const [questionDraftById, setQuestionDraftById] = useState({});
   const [vocabCatalogItems, setVocabCatalogItems] = useState([]);
+  const [aiConfigSlug, setAiConfigSlug] = useState("");
+  const [aiConfigDraft, setAiConfigDraft] = useState(createAiConfigDraft());
+  const [aiConfigLoading, setAiConfigLoading] = useState(false);
 
   const [newCategory, setNewCategory] = useState({ name: "", slug: "", description: "" });
   const [newPost, setNewPost] = useState({ title: "", slug: "", summary: "", content: "", status: "draft", published_at: "" });
@@ -391,7 +395,7 @@ export function AdminDashboard({
   }, [activeSection, contentLessonId]);
 
   useEffect(() => {
-    if (activeSection !== "noi-dung-mooc" || vocabCatalogItems.length) return;
+    if (!["noi-dung-mooc", "ai"].includes(activeSection) || vocabCatalogItems.length) return;
 
     let cancelled = false;
     import("../../../tu_vung.json")
@@ -414,6 +418,33 @@ export function AdminDashboard({
   const blogData = sectionState.blog?.data || { posts: [], categories: [] };
   const aiData = sectionState.ai?.data || { model: null, labels: [], modelError: "", labelsError: "" };
   const practiceData = sectionState.practice?.data || { attempts: [], sessions: [], attemptsError: "", sessionsError: "" };
+
+  async function loadAiConfigBySlug() {
+    setAiConfigLoading(true);
+    try {
+      const payload = await apiRequest(getAiConfigEndpoint(aiConfigSlug), { accessToken });
+      setAiConfigSlug(payload?.signSlug || String(aiConfigSlug || "").trim());
+      setAiConfigDraft(createAiConfigDraft(payload));
+    } finally {
+      setAiConfigLoading(false);
+    }
+  }
+
+  async function saveAiConfigBySlug() {
+    setAiConfigLoading(true);
+    try {
+      const payload = normalizeAiConfigPatchPayload(aiConfigDraft);
+      const saved = await apiRequest(getAiConfigEndpoint(aiConfigSlug), {
+        method: "PATCH",
+        accessToken,
+        body: payload,
+      });
+      setAiConfigSlug(saved?.signSlug || String(aiConfigSlug || "").trim());
+      setAiConfigDraft(createAiConfigDraft(saved));
+    } finally {
+      setAiConfigLoading(false);
+    }
+  }
 
   const lessonSelectOptions = useMemo(
     () => (lessonsData.lessons.length ? lessonsData.lessons : contentData.lessons).map((item) => ({ id: item.id, label: `${item.id} - ${item.title}` })),
@@ -1283,6 +1314,51 @@ export function AdminDashboard({
             </div>
           </Card>
         </div>
+
+        <Card className="p-5 md:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">AI scoring config by sign slug</div>
+            {aiConfigLoading ? <StatusBadge tone="amber">loading</StatusBadge> : null}
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <Field label="Sign slug" className="xl:col-span-1">
+              <Select value={aiConfigSlug} onChange={(e) => setAiConfigSlug(e.target.value)}>
+                <option value="">-- Chon sign slug --</option>
+                {signSlugOptions.map((item) => <option key={item.slug} value={item.slug}>{item.label} ({item.slug})</option>)}
+              </Select>
+            </Field>
+            <div className="flex flex-wrap items-end gap-2 xl:col-span-2">
+              <GhostButton type="button" onClick={() => runAction(loadAiConfigBySlug, { success: "Loaded AI config." })}>Load config</GhostButton>
+              <ActionButton type="button" onClick={() => runAction(saveAiConfigBySlug, { success: "Saved AI config.", reload: ["ai"] })}>Save config</ActionButton>
+            </div>
+
+            <Field label="Algorithm">
+              <Input value={aiConfigDraft.algorithm} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, algorithm: e.target.value }))} />
+            </Field>
+            <Field label="Hand weight">
+              <Input value={aiConfigDraft.handWeight} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, handWeight: e.target.value }))} />
+            </Field>
+            <Field label="Pose weight">
+              <Input value={aiConfigDraft.poseWeight} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, poseWeight: e.target.value }))} />
+            </Field>
+            <Field label="Speed weight">
+              <Input value={aiConfigDraft.speedWeight} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, speedWeight: e.target.value }))} />
+            </Field>
+            <Field label="Missing hand penalty">
+              <Input value={aiConfigDraft.missingHandPenalty} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, missingHandPenalty: e.target.value }))} />
+            </Field>
+            <Field label="Excellent threshold">
+              <Input value={aiConfigDraft.excellentThreshold} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, excellentThreshold: e.target.value }))} />
+            </Field>
+            <Field label="Good threshold">
+              <Input value={aiConfigDraft.goodThreshold} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, goodThreshold: e.target.value }))} />
+            </Field>
+            <Field label="Pass threshold">
+              <Input value={aiConfigDraft.passThreshold} onChange={(e) => setAiConfigDraft((prev) => ({ ...prev, passThreshold: e.target.value }))} />
+            </Field>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -1421,5 +1497,4 @@ export function AdminDashboard({
     </div>
   );
 }
-
 
