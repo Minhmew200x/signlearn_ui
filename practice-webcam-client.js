@@ -1,7 +1,7 @@
 const DEFAULT_RECORD_DURATION_MS = 4000;
 const DEFAULT_COUNTDOWN_SECONDS = 3;
 const DEFAULT_FRAME_INTERVAL_MS = 90;
-const DEFAULT_MEDIAPIPE_WASM_BASE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm/';
+const DEFAULT_MEDIAPIPE_WASM_BASE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
 
 export class PracticeWebcamClient {
     constructor(options) {

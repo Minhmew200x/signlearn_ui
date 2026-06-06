@@ -1,5 +1,5 @@
 const TASKS_VISION_CJS_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/vision_bundle.cjs';
-const TASKS_VISION_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm/';
+const TASKS_VISION_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
 const POSE_VISIBILITY_THRESHOLD = 0.15;
 
 const POSE_INDICES = [0, 11, 12, 13, 14, 15, 16, 23, 24];
