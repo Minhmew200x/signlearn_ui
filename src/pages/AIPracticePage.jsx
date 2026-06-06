@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest, assertListResponseShape } from "../app/lib/api.js";
 import { getLessonVideoPlaybackProps } from "../app/lib/videoPlayback.js";
 import { buildPracticeAttemptPayload, getLessonPracticeTargets, getPracticeReferenceVideoUrl } from "../app/lib/practice.js";
-import { getScoreAdvice } from "../app/lib/practiceScoring.js";
+import { getScoreAdvice, getVerdictLabel } from "../app/lib/practiceScoring.js";
 import { AppButton } from "../components/app/AppShell.jsx";
 import { createPracticeWebcamClient } from "../../practice-webcam-client.js";
 
@@ -273,9 +273,11 @@ export default function AIPracticePage({
   if (!topic || !mooc) return null;
 
   const verdictTone = VERDICT_TONE[result?.verdict] || VERDICT_TONE.retry;
+  const verdictLabel = getVerdictLabel(result?.verdict);
   const scoreAdvice = result
     ? getScoreAdvice({
       finalScore: Number(result.finalScore || 0),
+      componentScores: result.componentScores || {},
       scoringConfig,
     })
     : "";
@@ -442,8 +444,8 @@ export default function AIPracticePage({
             ) : (
               <div className="mt-4 space-y-4">
                 <div className={`rounded-2xl p-5 text-center ${verdictTone}`}>
-                  <div className="text-sm font-black uppercase tracking-[0.16em]">{result.verdict}</div>
-                  <div className="mt-2 text-5xl font-black">{result.finalScore}/100</div>
+                  <div className="text-sm font-black uppercase tracking-[0.16em]">Ket qua danh gia</div>
+                  <div className="mt-2 text-5xl font-black">{verdictLabel}</div>
                   <div className="mt-2 text-sm font-semibold">{selectedTarget?.word}</div>
                 </div>
 

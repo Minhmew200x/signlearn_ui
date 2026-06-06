@@ -10,6 +10,8 @@ test("AI practice page removes reference and detailed metrics, leaving webcam pl
   assert.doesNotMatch(source, /MetricRow label="hand_score"/);
   assert.doesNotMatch(source, /ScoreBar label="Hand"/);
   assert.match(source, /getScoreAdvice/);
+  assert.match(source, /getVerdictLabel/);
+  assert.doesNotMatch(source, /\/100/);
   assert.match(source, /Ket qua cuoi|Kết quả cuối/);
   assert.match(source, /Loi khuyen|Lời khuyên/);
 });
