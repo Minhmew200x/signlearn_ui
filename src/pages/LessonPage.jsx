@@ -4,6 +4,7 @@ import { apiRequest } from '../app/lib/api.js';
 import { getQuizQuestions } from '../app/lib/quiz.js';
 import { buildQuizSubmitPayload, getUnansweredQuizQuestionIds } from '../app/lib/quizSubmission.js';
 import { buildLessonFlowItems, isQuizPassed, isQuizUnlocked } from '../app/lib/lessonFlow.js';
+import { getLessonQuizTitle } from '../app/lib/practice.js';
 import { getLessonVideoPlaybackProps } from '../app/lib/videoPlayback.js';
 import { AppButton } from '../components/app/AppShell.jsx';
 
@@ -197,7 +198,8 @@ export default function LessonPage({
   const totalSteps = Math.max(vocabItems.length + (hasQuiz ? 1 : 0), 1);
   const currentStep = Math.min(activeWordIndex + 1, totalSteps);
   const passedQuiz = isQuizPassed(quizResult);
-  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, showAiPracticeStep: true });
+  const quizTitle = getLessonQuizTitle(lessonMaterial);
+  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, quizTitle, showAiPracticeStep: true });
   const nextActionLabel = !isLastWord ? 'Từ tiếp theo' : hasQuiz ? 'Sang quiz cuối bài' : 'Sang luyện AI';
 
   async function ensureMoocConfirmed() {
@@ -343,7 +345,7 @@ export default function LessonPage({
           {hasQuiz && isQuizUnlocked({ activeWordIndex, vocabItems, hasQuiz }) ? (
             <div className="mt-6 rounded-[1.6rem] border border-blue-100 bg-blue-50 p-5">
               <div className="text-sm font-black uppercase tracking-wide text-blue-700">Quiz cuối bài</div>
-              <h2 className="mt-2 text-2xl font-black text-slate-900">{lessonMaterial.quiz.title}</h2>
+              <h2 className="mt-2 text-2xl font-black text-slate-900">{quizTitle}</h2>
               {lessonMaterial.quiz.description ? <p className="mt-2 text-base font-semibold text-slate-600">{lessonMaterial.quiz.description}</p> : null}
 
               <div className="mt-5 space-y-4">

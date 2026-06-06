@@ -512,12 +512,13 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
       <AIPracticePage
         topic={currentTopic}
         mooc={currentMooc}
-        moocs={currentMoocs}
         lessonMaterial={currentLessonMaterial}
+        accessToken={accessToken}
         onBack={() => currentTopic && navigateTo(makeLessonPath(currentTopic.id, selectedMoocIndex))}
         onBackToMoocList={() => currentTopic && navigateTo(makeTopicPath(currentTopic.id))}
         onScore={handleAiScore}
         onGoNext={goToNextMooc}
+        onPracticeSaved={() => loadUserInsights()}
       />
     ),
   };

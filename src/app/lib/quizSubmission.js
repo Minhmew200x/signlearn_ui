@@ -21,7 +21,7 @@ export function getUnansweredQuizQuestionIds(questions, answersByQuestionId) {
 export function buildQuizSubmitPayload(questions, answersByQuestionId) {
   const unresolvedQuestionIds = getUnansweredQuizQuestionIds(questions, answersByQuestionId);
   if (unresolvedQuestionIds.length > 0) {
-    throw new Error(`Còn ${unresolvedQuestionIds.length} câu chưa trả lời.`);
+    throw new Error(`Con ${unresolvedQuestionIds.length} cau chua tra loi.`);
   }
 
   return {

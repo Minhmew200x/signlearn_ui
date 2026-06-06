@@ -1,6 +1,7 @@
 const DEFAULT_RECORD_DURATION_MS = 4000;
 const DEFAULT_COUNTDOWN_SECONDS = 3;
 const DEFAULT_FRAME_INTERVAL_MS = 90;
+const DEFAULT_MEDIAPIPE_WASM_BASE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm/';
 
 export class PracticeWebcamClient {
     constructor(options) {
@@ -24,7 +25,7 @@ export class PracticeWebcamClient {
                 },
                 audio: false,
             },
-            wasmBaseUrl: new URL("./vendor/mediapipe/wasm", import.meta.url).toString(),
+            wasmBaseUrl: DEFAULT_MEDIAPIPE_WASM_BASE_URL,
             workerUrl: new URL("./practice-worker.js", import.meta.url).toString(),
             ...options,
         };
@@ -58,9 +59,11 @@ export class PracticeWebcamClient {
         this.captureReject = null;
         this.finalizeResolve = null;
         this.finalizeReject = null;
+        this.phase = 'idle';
     }
 
     async init() {
+        this.#setPhase('loading_resources');
         this.#setStatus("Loading reference, model, and scoring config...");
 
         const [reference, modelAsset, scoringConfig] = await Promise.all([
@@ -74,6 +77,7 @@ export class PracticeWebcamClient {
         this.scoringConfig = scoringConfig;
 
         await this.#resetWorker();
+        this.#setPhase('worker_ready');
         this.#setStatus(`Ready for ${reference.label}.`);
         this.options.onReady?.({
             reference: this.reference,
@@ -96,6 +100,7 @@ export class PracticeWebcamClient {
         this.videoElement.muted = true;
         this.videoElement.playsInline = true;
         await this.videoElement.play();
+        this.#setPhase('camera_preview_on');
         this.#setStatus("Camera preview is running.");
     }
 
@@ -120,6 +125,7 @@ export class PracticeWebcamClient {
         this.recordedChunks = [];
         this.mediaRecorder = null;
         this.videoElement.srcObject = null;
+        this.#setPhase(this.workerReady ? 'worker_ready' : 'idle');
     }
 
     async scoreOnce() {
@@ -135,23 +141,32 @@ export class PracticeWebcamClient {
         this.latestResult = null;
 
         await this.#runCountdown();
+        this.#setPhase('recording');
         this.#startVideoRecording();
         await this.#captureForDuration();
         await this.#stopVideoRecording();
 
+        this.#setPhase('processing');
         this.#setStatus("Scoring 4-second attempt...");
         const result = await this.#requestFinalScore();
         this.latestResult = result;
         this.#renderScore(result);
 
         let uploadResponse = null;
+        let uploadError = null;
         if (this.options.uploadArtifacts) {
             this.#setStatus("Uploading score and practice artifacts...");
-            uploadResponse = await this.#uploadPracticeArtifacts(result);
+            try {
+                uploadResponse = await this.#uploadPracticeArtifacts(result);
+            } catch (error) {
+                uploadError = error instanceof Error ? error : new Error(String(error));
+                this.options.onArtifactUploadError?.(uploadError);
+            }
         }
 
+        this.#setPhase('done');
         this.#setStatus(`Done. Final score: ${this.#roundNumber(result.finalScore, 2)}.`);
-        const payload = { result, uploadResponse };
+        const payload = { result, uploadResponse, uploadError };
         this.options.onResult?.(payload);
         return payload;
     }
@@ -212,12 +227,13 @@ export class PracticeWebcamClient {
     async #resetWorker() {
         this.#teardownWorker();
         this.workerReady = false;
-        this.worker = new Worker(this.options.workerUrl, { type: "module" });
+        this.worker = new Worker(this.options.workerUrl);
         this.worker.onmessage = (event) => this.#handleWorkerMessage(event);
         this.worker.onerror = (event) => {
             const message = event?.message || "Worker runtime error";
             this.#rejectPendingWork(new Error(message));
             this.workerReady = false;
+            this.#setPhase('error');
             this.#setStatus(`Worker error: ${message}`, true);
             this.options.onError?.(new Error(message));
         };
@@ -258,12 +274,15 @@ export class PracticeWebcamClient {
         if (modelAsset?.signedUrl) {
             return modelAsset.signedUrl;
         }
+        if (typeof modelAsset?.objectKey === "string" && modelAsset.objectKey.trim()) {
+            return new URL(modelAsset.objectKey, this.options.modelBaseUrl || window.location.origin).toString();
+        }
         if (modelAsset?.storage === "s3" || modelAsset?.storage === "minio") {
             throw new Error("Model storage is remote but backend did not provide signedUrl.");
         }
 
         const modelBaseUrl = this.options.modelBaseUrl || window.location.origin;
-        return new URL("/models/holistic_landmarker.task", modelBaseUrl).toString();
+        return new URL(`/models/${modelAsset?.modelFile || 'holistic_landmarker.task'}`, modelBaseUrl).toString();
     }
 
     #startVideoRecording() {
@@ -307,7 +326,9 @@ export class PracticeWebcamClient {
     async #runCountdown() {
         const countdown = Math.max(Number(this.options.countdownSeconds) || 0, 0);
         for (let value = countdown; value >= 1; value -= 1) {
+            this.#setPhase('countdown', { remaining: value });
             this.#setStatus(`Starting in ${value}...`);
+            this.options.onCountdown?.({ remaining: value });
             await this.#waitMs(1000);
         }
     }
@@ -447,9 +468,15 @@ export class PracticeWebcamClient {
             const error = new Error(message || "Worker error");
             this.busy = false;
             this.#rejectPendingWork(error);
+            this.#setPhase('error');
             this.#setStatus(error.message, true);
             this.options.onError?.(error);
         }
+    }
+
+    #setPhase(phase, meta = undefined) {
+        this.phase = phase;
+        this.options.onPhase?.({ phase, meta: meta || null });
     }
 
     #rejectPendingWork(error) {

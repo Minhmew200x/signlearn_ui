@@ -9,7 +9,7 @@ export function isQuizPassed(quizResult) {
   return Boolean(quizResult?.passed);
 }
 
-export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, showAiPracticeStep = false }) {
+export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, quizTitle = 'Quiz cuối bài', showAiPracticeStep = false }) {
   const words = Array.isArray(vocabItems) ? vocabItems : [];
   const activeQuiz = isQuizUnlocked({ activeWordIndex, vocabItems: words, hasQuiz });
   const passedQuiz = isQuizPassed(quizResult);
@@ -25,7 +25,7 @@ export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], has
     items.push({
       id: 'quiz',
       type: 'quiz',
-      label: 'Quiz cuối bài',
+      label: quizTitle,
       status: passedQuiz ? 'completed' : activeQuiz ? 'active' : 'upcoming',
       explanation: 'Ôn tập lại những gì đã học',
     });
