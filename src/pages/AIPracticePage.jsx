@@ -139,6 +139,7 @@ export default function AIPracticePage({
         const createdClient = await createPracticeWebcamClient({
           signSlug: selectedTarget.signSlug,
           videoElement: videoRef.current,
+          accessToken,
           uploadArtifacts: true,
           onReady: ({ scoringConfig: nextScoringConfig }) => {
             if (cancelled) return;

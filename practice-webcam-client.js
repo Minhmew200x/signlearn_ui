@@ -507,7 +507,15 @@ export class PracticeWebcamClient {
 
     async #fetchJson(path, options = undefined) {
         const url = new URL(path, this.options.apiBaseUrl || window.location.origin).toString();
-        const response = await fetch(url, options);
+        const headers = new Headers(options?.headers || undefined);
+        if (this.options.accessToken) {
+            headers.set("Authorization", `Bearer ${this.options.accessToken}`);
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers,
+        });
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
