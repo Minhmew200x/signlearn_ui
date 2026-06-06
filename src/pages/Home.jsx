@@ -109,12 +109,12 @@ export default function Home({
     <main className="mx-auto w-full max-w-[1600px] px-5 py-8 md:px-8 md:py-10">
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
           <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-100 via-white to-amber-100 p-6 text-slate-900 shadow-xl shadow-blue-100/50 md:p-8">
-          <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-200 ring-1 ring-white/10">
+          <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-500 ring-1 ring-white/10">
             Trang tổng quan
           </div>
           <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-tight md:text-6xl">Xin chào, {displayName}</h1>
-          <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-300">
-            Theo dõi tiến độ, mở lại bài đang học và xem hoạt động học tập gần nhất được lấy từ API backend.
+          <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-500">
+            Theo dõi tiến độ, mở lại bài đang học và xem hoạt động học tập gần nhất của bạn
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -135,7 +135,7 @@ export default function Home({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <StatCard label="Tiến độ" value={`${overview.completionPercent}%`} hint="Trung bình tiến độ course từ API." />
+          <StatCard label="Tiến độ" value={`${overview.completionPercent}%`} hint="Trung bình tiến độ các course" />
           <StatCard label="Streak" value={`${overview.streakDays} ngày`} hint="Tính từ quiz history và practice sessions." valueClassName="text-amber-400" />
           <StatCard label="Bài hoàn thành" value={`${overview.completedLessons}/${overview.totalLessons}`} hint="Lesson đã hoàn tất trong course progress." />
           <StatCard label="Quiz trung bình" value={overview.avgQuizScore || "--"} hint="Điểm trung bình từ lịch sử quiz." />
@@ -238,7 +238,6 @@ export default function Home({
 
           <section className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
             <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Hoạt động gần nhất</div>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">Từ API học tập</h2>
             <div className="mt-5">
               <RecentActivity quizHistory={quizHistory} practiceSessions={practiceSessions} />
             </div>

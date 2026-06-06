@@ -65,7 +65,6 @@ export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, isSubmit
           <div className={'absolute inset-y-0 right-0 hidden w-px bg-white/20 lg:block'} />
           <div className={'relative z-10 max-w-2xl'}>
             <SignlearnBadge />
-            <div className={'mt-8 inline-flex items-center rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/78'}>{'Nền tảng học hiện đại'}</div>
             <h1 className={'mt-8 max-w-[10.8ch] text-[clamp(3.6rem,5.8vw,6.2rem)] font-extrabold leading-[1.06] tracking-[-0.075em] text-balance'}>{isRegister ? 'Tạo tài khoản để học cùng SignLearn' : 'Đăng nhập để vào học cùng SignLearn'}</h1>
             <p className={'mt-8 max-w-[36rem] text-base font-medium leading-8 text-white/84 sm:text-lg sm:leading-9'}>{'Học ký hiệu theo từng chủ đề, xem video minh họa và luyện tập lại bất cứ lúc nào.'}</p>
           </div>
