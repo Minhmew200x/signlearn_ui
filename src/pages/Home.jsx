@@ -13,12 +13,20 @@ function getDisplayName(user) {
   return user?.full_name || user?.name || user?.email || "Học viên";
 }
 
-function StatCard({ label, value, hint }) {
+function StatCard({ label, value, hint, valueClassName = "text-slate-900" }) {
   return (
     <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{label}</div>
-      <div className="mt-3 text-4xl font-black tracking-tight text-slate-900">{value}</div>
-      <div className="mt-2 text-sm font-semibold leading-6 text-slate-500">{hint}</div>
+      <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </div>
+
+      <div className={`mt-3 text-4xl font-black tracking-tight ${valueClassName}`}>
+        {value}
+      </div>
+
+      <div className="mt-2 text-sm font-semibold leading-6 text-slate-500">
+        {hint}
+      </div>
     </div>
   );
 }
@@ -100,7 +108,7 @@ export default function Home({
   return (
     <main className="mx-auto w-full max-w-[1600px] px-5 py-8 md:px-8 md:py-10">
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
-          <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-6 text-slate-900 shadow-xl shadow-blue-100/50 md:p-8">
+          <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-100 via-white to-amber-100 p-6 text-slate-900 shadow-xl shadow-blue-100/50 md:p-8">
           <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-200 ring-1 ring-white/10">
             Trang tổng quan
           </div>
@@ -128,7 +136,7 @@ export default function Home({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <StatCard label="Tiến độ" value={`${overview.completionPercent}%`} hint="Trung bình tiến độ course từ API." />
-          <StatCard label="Streak" value={`${overview.streakDays} ngày`} hint="Tính từ quiz history và practice sessions." />
+          <StatCard label="Streak" value={`${overview.streakDays} ngày`} hint="Tính từ quiz history và practice sessions." valueClassName="text-amber-400" />
           <StatCard label="Bài hoàn thành" value={`${overview.completedLessons}/${overview.totalLessons}`} hint="Lesson đã hoàn tất trong course progress." />
           <StatCard label="Quiz trung bình" value={overview.avgQuizScore || "--"} hint="Điểm trung bình từ lịch sử quiz." />
         </div>
