@@ -300,7 +300,7 @@ export default function AIPracticePage({
         </div>
         <h1 className="mt-4 text-4xl font-black md:text-6xl">{`MOOC ${mooc?.moocNumber || ""}: ${mooc?.lessonTitle || topic.title}`}</h1>
         <p className="mt-3 max-w-4xl text-xl font-semibold text-slate-600">
-          Chấm điểm trực tiếp trong trình duyệt bằng worker + MediaPipe WASM. Từ vựng dùng để luyện là các sign đang có trong lesson này.
+          Thực hành ngay những từ vựng đã học cùng với AI webcam chấm điểm.
         </p>
         <div className="mt-5 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
           <span className="rounded-full bg-white px-3 py-1">{practiceTargets.length} từ trong lesson</span>
