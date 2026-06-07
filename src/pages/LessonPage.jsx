@@ -224,13 +224,14 @@ export default function LessonPage({
       return;
     }
 
-    const confirmed = await ensureMoocConfirmed();
-    if (!confirmed) return;
-
     if (hasQuiz) {
       setActiveWordIndex(quizStepIndex);
+      ensureMoocConfirmed().catch(() => {});
       return;
     }
+
+    const confirmed = await ensureMoocConfirmed();
+    if (!confirmed) return;
 
     onCompleteMooc?.();
   }
