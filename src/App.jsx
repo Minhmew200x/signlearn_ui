@@ -386,12 +386,16 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     if (!currentMooc?.lessonId || !currentTopic?.courseId) return;
 
     const hasQuiz = Boolean(currentLessonMaterial?.quiz?.detail?.questions?.length);
-    await patchLessonProgress({
-      lessonId: currentMooc.lessonId,
-      progressPercent: hasQuiz ? 70 : 100,
-      status: hasQuiz ? "Đang tiến hành" : "completed",
-    });
-    await refreshCourseProgress([currentTopic.courseId]);
+    try {
+      await patchLessonProgress({
+        lessonId: currentMooc.lessonId,
+        progressPercent: hasQuiz ? 70 : 100,
+        status: hasQuiz ? "Đang tiến hành" : "completed",
+      });
+      await refreshCourseProgress([currentTopic.courseId]);
+    } catch (error) {
+      console.error("Không đồng bộ được tiến độ lesson khi mở quiz:", error);
+    }
   }
 
   async function handleQuizCompleted(result) {
@@ -406,12 +410,16 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
 
     if (!currentMooc?.lessonId || !currentTopic?.courseId) return;
 
-    await patchLessonProgress({
-      lessonId: currentMooc.lessonId,
-      progressPercent: 100,
-      status: "completed",
-    });
-    await refreshCourseProgress([currentTopic.courseId]);
+    try {
+      await patchLessonProgress({
+        lessonId: currentMooc.lessonId,
+        progressPercent: 100,
+        status: "completed",
+      });
+      await refreshCourseProgress([currentTopic.courseId]);
+    } catch (error) {
+      console.error("Không đồng bộ được tiến độ lesson sau khi qua quiz:", error);
+    }
   }
 
   function goToNextMooc() {
