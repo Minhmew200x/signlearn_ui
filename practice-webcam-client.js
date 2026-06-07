@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from './src/app/lib/runtimeConfig.js';
+
 const DEFAULT_RECORD_DURATION_MS = 4000;
 const DEFAULT_COUNTDOWN_SECONDS = 3;
 const DEFAULT_FRAME_INTERVAL_MS = 90;
@@ -10,13 +12,13 @@ export class PracticeWebcamClient {
         }
 
         this.options = {
-            apiBaseUrl: "",
+            apiBaseUrl: getApiBaseUrl(),
             countdownSeconds: DEFAULT_COUNTDOWN_SECONDS,
             frameIntervalMs: DEFAULT_FRAME_INTERVAL_MS,
             mediaRecorderMimeType: "video/webm;codecs=vp8,opus",
             recordDurationMs: DEFAULT_RECORD_DURATION_MS,
             uploadArtifacts: true,
-            uploadEndpoint: "/api/v1/practice/uploads",
+            uploadEndpoint: "https://api.signlearn.id.vn/api/v1/practice/uploads",
             videoConstraints: {
                 video: {
                     facingMode: "user",
