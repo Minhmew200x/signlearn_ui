@@ -54,10 +54,10 @@ test("home overview derives progress, continue target, and streak from API paylo
     },
     courseProgressByCourseId: {
       10: {
-        progress: { progress_percent: 50, status: "in_progress" },
+        progress: { progress_percent: 50, status: "Đang tiến hành" },
         lessons: [
           { lesson_id: 1, title: "Hello", order_index: 1, status: "completed", progress_percent: 100 },
-          { lesson_id: 2, title: "Thanks", order_index: 2, status: "in_progress", progress_percent: 30 },
+          { lesson_id: 2, title: "Thanks", order_index: 2, status: "Đang tiến hành", progress_percent: 30 },
         ],
       },
       20: {

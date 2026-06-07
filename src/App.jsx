@@ -347,7 +347,7 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     patchLessonProgress({
       lessonId: currentMooc.lessonId,
       progressPercent: 10,
-      status: "in_progress",
+      status: "Đang tiến hành",
     })
       .then(() => refreshCourseProgress([currentTopic.courseId]))
       .catch(() => {});
@@ -389,7 +389,7 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     await patchLessonProgress({
       lessonId: currentMooc.lessonId,
       progressPercent: hasQuiz ? 70 : 100,
-      status: hasQuiz ? "in_progress" : "completed",
+      status: hasQuiz ? "Đang tiến hành" : "completed",
     });
     await refreshCourseProgress([currentTopic.courseId]);
   }

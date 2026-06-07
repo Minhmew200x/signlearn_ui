@@ -17,7 +17,6 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
         </div>
         {courseProgress?.progress && (
           <div className="mt-4 rounded-2xl bg-white/80 px-5 py-4 text-sm font-black text-slate-700 ring-1 ring-blue-100">
-            Tiến độ backend: {Math.round(Number(courseProgress.progress.progress_percent || 0))}% • Trạng thái: {courseProgress.progress.status}
           </div>
         )}
       </section>

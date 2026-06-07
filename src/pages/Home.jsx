@@ -138,7 +138,7 @@ export default function Home({
           <StatCard label="Tiến độ" value={`${overview.completionPercent}%`} hint="Trung bình tiến độ các course" />
           <StatCard label="Streak" value={`${overview.streakDays} ngày`} hint="Tính từ quiz history và practice sessions." valueClassName="text-amber-400" />
           <StatCard label="Bài hoàn thành" value={`${overview.completedLessons}/${overview.totalLessons}`} hint="Lesson đã hoàn tất trong course progress." />
-          <StatCard label="Quiz trung bình" value={overview.avgQuizScore || "--"} hint="Điểm trung bình từ lịch sử quiz." />
+          <StatCard label="Quiz trung bình" value={overview.avgQuizScore || "--"} hint="Điểm trung bình quiz của bạn." />
         </div>
       </section>
 
@@ -182,14 +182,11 @@ export default function Home({
           <section>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Course từ API</div>
                 <h2 className="mt-2 text-3xl font-black text-slate-900">Lộ trình học tập</h2>
               </div>
-              <div className="text-sm font-bold text-slate-500">Nguồn catalog: {catalogSource}</div>
             </div>
             {!visibleTopics.length ? (
               <div className="mt-5 rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-6 text-sm font-semibold text-slate-500 shadow-sm">
-                Backend chưa có course nào để hiển thị. Hãy seed course trong dashboard admin rồi đồng bộ lại.
               </div>
             ) : (
               <div className="mt-5 grid gap-4 md:grid-cols-2">

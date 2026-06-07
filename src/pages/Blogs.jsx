@@ -278,7 +278,6 @@ export default function Blogs({ currentUser = null, accessToken = "", blogSlug =
               Bài viết mới nhất từ cộng đồng SignLearn.
             </h1>
             <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-600">
-              Mở từng bài ở endpoint riêng, quay lại danh sách bất cứ lúc nào, và đọc bài khác ngay bên trái.
             </p>
           </div>
           <button

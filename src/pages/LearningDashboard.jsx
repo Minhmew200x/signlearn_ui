@@ -68,10 +68,7 @@ export default function LearningDashboard({
               <button
                 type="button"
                 onClick={onRefreshCatalog}
-                disabled={catalogLoading}
-                className="min-h-12 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 disabled:bg-slate-300"
-              >
-                {catalogLoading ? "Đang tải" : "Đồng bộ lại"}
+                disabled={catalogLoading}              >
               </button>
             </div>
 
@@ -110,10 +107,8 @@ export default function LearningDashboard({
           <section>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Nguồn {catalogSource}</div>
                 <h2 className="mt-2 text-3xl font-black text-slate-900">Danh sách course</h2>
               </div>
-              <p className="text-sm font-semibold text-slate-500">Course và tiến độ được cập nhật theo dữ liệu backend.</p>
             </div>
 
             {!topics.length ? (
