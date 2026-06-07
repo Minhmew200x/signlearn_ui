@@ -13,7 +13,7 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
         <h1 className="mt-4 text-4xl font-black text-slate-900 md:text-6xl">{topic.title}</h1>
         <p className="mt-3 text-xl font-semibold leading-9 text-slate-700">{topic.desc}</p>
         <div className="mt-5 rounded-2xl bg-white/70 px-5 py-4 text-base font-black text-blue-900">
-          Học lần lượt 5 MOOC. Mỗi MOOC gồm 2-3 từ và một quiz cuối bài. Sau khi qua quiz, bạn có thể luyện thêm bằng AI nếu muốn.
+          Học theo từng bài học nhỏ, sau khi xong hết quiz và thực hành thì khóa mới sẽ mở
         </div>
         {courseProgress?.progress && (
           <div className="mt-4 rounded-2xl bg-white/80 px-5 py-4 text-sm font-black text-slate-700 ring-1 ring-blue-100">
