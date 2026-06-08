@@ -36,6 +36,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #ffffff;
+  font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -45,8 +49,14 @@ body {
 button,
 input,
 select,
-textarea {
+textarea,
+option {
   font: inherit;
+}
+
+select,
+option {
+  font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 button {

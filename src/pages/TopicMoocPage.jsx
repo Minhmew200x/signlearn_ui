@@ -1,4 +1,4 @@
-import { AppButton } from "../components/app/AppShell.jsx";
+﻿import { AppButton } from "../components/app/AppShell.jsx";
 
 export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgress, onBack, onOpenMooc }) {
   if (!topic) return null;
@@ -51,16 +51,11 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
                     <div>
                       <div className="text-sm font-black uppercase tracking-wide text-slate-500">MOOC {mooc.moocNumber}</div>
                       <div className="mt-1 text-2xl font-black text-slate-900">{mooc.lessonTitle}</div>
-                      {backendLessonProgress && (
-                        <div className="mt-2 text-sm font-bold text-slate-500">
-                          Progress: {Math.round(Number(backendLessonProgress.progress_percent || 0))}% • {backendLessonProgress.status}
-                        </div>
-                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       {isCompleted ? (
                         <span className="rounded-full bg-emerald-600 px-3 py-1 text-sm font-black text-white">
-                          {score > 0 ? `✓ Hoàn thành (${score})` : "✓ Hoàn thành"}
+                          {score > 0 ? `Hoàn thành (${score})` : "Hoàn thành"}
                         </span>
                       ) : isUnlocked ? (
                         <span className="rounded-full bg-blue-600 px-3 py-1 text-sm font-black text-white">Đang mở</span>
@@ -78,5 +73,6 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
     </main>
   );
 }
+
 
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 
 import { apiRequest, assertListResponseShape } from "../app/lib/api.js";
 import { getLessonVideoPlaybackProps } from "../app/lib/videoPlayback.js";
@@ -8,15 +8,15 @@ import { AppButton } from "../components/app/AppShell.jsx";
 import { createPracticeWebcamClient } from "../../practice-webcam-client.js";
 
 const STATUS_LABELS = {
-  idle: "idle",
-  loading_resources: "loading resources",
-  worker_ready: "worker ready",
-  camera_preview_on: "camera preview on",
-  countdown: "countdown",
-  recording: "recording",
-  processing: "processing",
-  done: "done",
-  error: "error",
+  idle: "Chờ bắt đầu",
+  loading_resources: "Đang tải tài nguyên",
+  worker_ready: "Sẵn sàng",
+  camera_preview_on: "Đã bật xem trước camera",
+  countdown: "Đếm ngược",
+  recording: "Đang ghi hình",
+  processing: "Đang xử lý",
+  done: "Hoàn tất",
+  error: "Lỗi",
 };
 
 const VERDICT_TONE = {
@@ -46,7 +46,7 @@ export default function AIPracticePage({
 
   const [selectedTargetSlug, setSelectedTargetSlug] = useState("");
   const [practiceStatus, setPracticeStatus] = useState("idle");
-  const [statusMessage, setStatusMessage] = useState("Chọn từ vựng trong lesson để nạp worker chấm điểm AI.");
+  const [statusMessage, setStatusMessage] = useState("Chọn từ vựng trong bài để nạp worker chấm điểm AI.");
   const [cameraOn, setCameraOn] = useState(false);
   const [countdownValue, setCountdownValue] = useState(0);
   const [scoringConfig, setScoringConfig] = useState(null);
@@ -263,7 +263,7 @@ export default function AIPracticePage({
         setPersistedAttempt(savedAttempt);
         await onPracticeSaved?.(savedAttempt, payload);
       } catch (error) {
-        setPersistError(error?.message || "Không lưu được lịch sử practice attempt lên backend.");
+        setPersistError(error?.message || "Không lưu được lịch sử lượt luyện lên backend.");
       }
     } catch (error) {
       setPracticeStatus("error");
@@ -296,16 +296,16 @@ export default function AIPracticePage({
 
       <section className="rounded-[2.4rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-6 text-slate-900 shadow-sm md:p-10">
         <div className="inline-flex rounded-full bg-blue-600 px-4 py-2 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-blue-100">
-          AI scoring bằng webcam
+          Đánh giá AI bằng webcam
         </div>
         <h1 className="mt-4 text-4xl font-black md:text-6xl">{`MOOC ${mooc?.moocNumber || ""}: ${mooc?.lessonTitle || topic.title}`}</h1>
         <p className="mt-3 max-w-4xl text-xl font-semibold text-slate-600">
           Thực hành ngay những từ vựng đã học cùng với AI webcam chấm điểm.
         </p>
         <div className="mt-5 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-          <span className="rounded-full bg-white px-3 py-1">{practiceTargets.length} từ trong lesson</span>
-          <span className="rounded-full bg-white px-3 py-1">Status: {STATUS_LABELS[practiceStatus] || practiceStatus}</span>
-          <span className="rounded-full bg-white px-3 py-1">Camera {cameraOn ? "on" : "off"}</span>
+          <span className="rounded-full bg-white px-3 py-1">{practiceTargets.length} từ trong bài</span>
+          <span className="rounded-full bg-white px-3 py-1">Trạng thái: {STATUS_LABELS[practiceStatus] || practiceStatus}</span>
+          <span className="rounded-full bg-white px-3 py-1">Camera: {cameraOn ? "Bật" : "Tắt"}</span>
         </div>
       </section>
 
@@ -313,10 +313,10 @@ export default function AIPracticePage({
         <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-black uppercase tracking-wide text-blue-700">Target đang chọn</div>
-              <h2 className="mt-2 text-2xl font-black text-slate-900">{selectedTarget?.word || "Chưa có target"}</h2>
+              <div className="text-sm font-black uppercase tracking-wide text-blue-700">Từ đang chọn</div>
+              <h2 className="mt-2 text-2xl font-black text-slate-900">{selectedTarget?.word || "Chưa có từ"}</h2>
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                {selectedTarget?.signSlug ? `sign_slug: ${selectedTarget.signSlug}` : "Lesson này chưa có sign slug hợp lệ để chấm AI."}
+                {selectedTarget?.signSlug ? `sign_slug: ${selectedTarget.signSlug}` : "Bài này chưa có sign slug hợp lệ để chấm AI."}
               </p>
             </div>
           </div>
@@ -327,11 +327,11 @@ export default function AIPracticePage({
             {!cameraOn ? (
               <div className="grid place-items-center p-8 text-center">
                 <div>
-                  <div className="text-3xl font-black">Worker webcam preview</div>
+                  <div className="text-3xl font-black">Xem trước webcam</div>
                   <p className="mt-3 text-base font-semibold text-slate-300">
                     {practiceStatus === "loading_resources"
-                      ? "Đang nạp worker và practice resources trước khi mở camera."
-                      : "Mở camera sau khi worker ready để bắt đầu countdown 3 giây và record khoảng 4 giây."}
+                      ? "Đang nạp worker và tài nguyên luyện tập trước khi mở camera."
+                      : "Mở camera sau khi worker sẵn sàng để bắt đầu đếm ngược 3 giây và ghi hình khoảng 4 giây."}
                   </p>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function AIPracticePage({
             {practiceStatus === "countdown" ? (
               <div className="absolute inset-0 grid place-items-center bg-blue-950/70">
                 <div className="rounded-[2rem] bg-white px-8 py-6 text-center text-slate-900 shadow-xl">
-                  <div className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Countdown</div>
+                  <div className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Đếm ngược</div>
                   <div className="mt-2 text-6xl font-black">{countdownValue}</div>
                 </div>
               </div>
@@ -348,13 +348,13 @@ export default function AIPracticePage({
 
             {practiceStatus === "recording" ? (
               <div className="absolute left-5 top-5 rounded-full bg-rose-600 px-4 py-2 text-sm font-black uppercase tracking-[0.16em] text-white">
-                Recording
+                Đang ghi hình
               </div>
             ) : null}
 
             {practiceStatus === "processing" ? (
               <div className="absolute inset-0 grid place-items-center bg-blue-950/70">
-                <div className="rounded-2xl bg-white px-6 py-5 text-xl font-black text-slate-900">Worker đang finalize DTW score...</div>
+                <div className="rounded-2xl bg-white px-6 py-5 text-xl font-black text-slate-900">Worker đang hoàn tất tính điểm DTW...</div>
               </div>
             ) : null}
           </div>
@@ -367,7 +367,7 @@ export default function AIPracticePage({
               Tắt camera
             </AppButton>
             <AppButton onClick={scoreSelectedTarget} variant="soft" disabled={!cameraOn || practiceStatus === "processing" || practiceStatus === "recording"}>
-              Chấm điểm target
+              Chấm điểm
             </AppButton>
           </div>
 
@@ -383,7 +383,7 @@ export default function AIPracticePage({
               <div>
                 <h2 className="text-2xl font-black text-slate-900">Video mẫu</h2>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
-                  Video hành động cần chấm. Tự loop liên tục để bạn nhìn theo khi bật webcam.
+                  Video động tác cần chấm. Tự lặp liên tục để bạn nhìn theo khi bật webcam.
                 </p>
               </div>
               {selectedTarget?.word ? (
@@ -407,7 +407,7 @@ export default function AIPracticePage({
                     <div>
                       <div className="text-lg font-black">Chưa có video mẫu</div>
                       <p className="mt-2 text-sm font-semibold text-slate-300">
-                        Target này chưa có nguồn video để hiển thị bên phải.
+                        Từ này chưa có nguồn video để hiển thị bên phải.
                       </p>
                     </div>
                   </div>
@@ -417,9 +417,9 @@ export default function AIPracticePage({
           </section>
 
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-black text-slate-900">Từ vựng trong lesson</h2>
+            <h2 className="text-2xl font-black text-slate-900">Từ vựng trong bài</h2>
             <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
-              {signsLoading ? "Đang tải sign catalog..." : "Chọn một từ trong lesson. Worker sẽ nạp model và config chấm điểm cho sign đó trước khi mở camera."}
+              {signsLoading ? "Đang tải danh sách sign..." : "Chọn một từ trong bài. Worker sẽ nạp model và config chấm điểm cho sign đó trước khi mở camera."}
             </p>
             <div className="mt-4 flex max-h-80 flex-wrap gap-2 overflow-auto rounded-2xl bg-blue-50 p-4">
               {practiceTargets.map((item) => {
@@ -441,11 +441,11 @@ export default function AIPracticePage({
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
             <h2 className="text-2xl font-black text-slate-900">Kết quả cuối</h2>
             {!result ? (
-              <div className="mt-4 rounded-2xl bg-slate-50 p-5 text-center text-base font-semibold text-slate-500">Chưa có kết quả. Flow chuẩn: worker ready → camera preview on → countdown → recording → processing → done.</div>
+              <div className="mt-4 rounded-2xl bg-slate-50 p-5 text-center text-base font-semibold text-slate-500">Chưa có kết quả. Luồng chuẩn: sẵn sàng → bật xem trước camera → đếm ngược → ghi hình → xử lý → hoàn tất.</div>
             ) : (
               <div className="mt-4 space-y-4">
                 <div className={`rounded-2xl p-5 text-center ${verdictTone}`}>
-                  <div className="text-sm font-black uppercase tracking-[0.16em]">Ket qua danh gia</div>
+                  <div className="text-sm font-black uppercase tracking-[0.16em]">Kết quả đánh giá</div>
                   <div className="mt-2 text-5xl font-black">{verdictLabel}</div>
                   <div className="mt-2 text-sm font-semibold">{selectedTarget?.word}</div>
                 </div>
@@ -454,12 +454,6 @@ export default function AIPracticePage({
                   <div className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Lời khuyên</div>
                   <p className="mt-2 text-base font-semibold leading-7">{scoreAdvice}</p>
                 </div>
-
-                {persistedAttempt ? (
-                  <div className="rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
-                    Đã lưu practice attempt #{persistedAttempt.id} lên backend.
-                  </div>
-                ) : null}
 
                 <AppButton onClick={onGoNext} className="w-full">
                   Hoàn tất MOOC
@@ -472,3 +466,8 @@ export default function AIPracticePage({
     </main>
   );
 }
+
+
+
+
+

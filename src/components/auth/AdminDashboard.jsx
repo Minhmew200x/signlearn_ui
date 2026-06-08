@@ -78,7 +78,7 @@ function Textarea(props) {
 }
 
 function Select(props) {
-  return <select {...props} className={cx("min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500", props.className)} />;
+  return <select {...props} className={cx("min-h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500", props.className)} />;
 }
 
 function ActionButton({ children, danger = false, subtle = false, className = "", ...props }) {
@@ -255,14 +255,18 @@ export function AdminDashboard({
       }
 
       if (sectionId === "bai-hoc") {
-        const lessonPayload = await apiRequest("/api/v1/lessons", { accessToken, query: { skip: 0, limit: 200, include_unpublished: true } });
+        const [lessonPayload, coursePayload] = await Promise.all([
+          apiRequest("/api/v1/lessons", { accessToken, query: { skip: 0, limit: 200, include_unpublished: true } }),
+          apiRequest("/api/v1/courses", { accessToken, query: { skip: 0, limit: 200, include_unpublished: true } }),
+        ]);
         const lessons = normalizeList(lessonPayload);
+        const courses = normalizeList(coursePayload);
         const detailResults = await Promise.allSettled(lessons.map((item) => apiRequest(`/api/v1/lessons/${item.id}`, { accessToken })));
         const lessonDetails = {};
         detailResults.forEach((result, index) => {
           if (result.status === "fulfilled") lessonDetails[lessons[index].id] = result.value;
         });
-        data = { lessons, lessonDetails };
+        data = { lessons, lessonDetails, courses };
       }
 
       if (sectionId === "noi-dung-mooc") {
@@ -414,7 +418,7 @@ export function AdminDashboard({
   const activeSectionState = sectionState[activeSection] || { status: "idle", error: "", data: null };
   const usersData = sectionState["nguoi-dung"]?.data || { users: [] };
   const coursesData = sectionState["khoa-hoc"]?.data || { courses: [], courseDetails: {} };
-  const lessonsData = sectionState["bai-hoc"]?.data || { lessons: [], lessonDetails: {} };
+  const lessonsData = sectionState["bai-hoc"]?.data || { lessons: [], lessonDetails: {}, courses: [] };
   const blogData = sectionState.blog?.data || { posts: [], categories: [] };
   const aiData = sectionState.ai?.data || { model: null, labels: [], modelError: "", labelsError: "" };
   const practiceData = sectionState.practice?.data || { attempts: [], sessions: [], attemptsError: "", sessionsError: "" };
@@ -476,8 +480,8 @@ export function AdminDashboard({
     setNewQuizDraft((prev) => ({ ...prev, lesson_id: nextLessonId || String(prev.lesson_id || "") }));
   }, [activeSection, contentData.lessons, filteredContentLessons, contentLessonId, contentLessonQuery]);
   const courseSelectOptions = useMemo(
-    () => coursesData.courses.map((item) => ({ id: item.id, label: `${item.id} - ${item.title}` })),
-    [coursesData.courses]
+    () => (lessonsData.courses.length ? lessonsData.courses : coursesData.courses).map((item) => ({ id: item.id, label: `${item.id} - ${item.title}` })),
+    [coursesData.courses, lessonsData.courses]
   );
   const signSlugOptions = useMemo(
     () => collectSignSlugOptions(contentData.signs, vocabCatalogItems),
@@ -873,7 +877,7 @@ export function AdminDashboard({
           <Field label="Title"><Input value={newCourse.title} onChange={(e) => setNewCourse((prev) => ({ ...prev, title: e.target.value }))} /></Field>
           <Field label="Level"><Select value={newCourse.level} onChange={(e) => setNewCourse((prev) => ({ ...prev, level: e.target.value }))}>{LEVEL_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}</Select></Field>
           <Field label="Published"><Select value={String(newCourse.is_published)} onChange={(e) => setNewCourse((prev) => ({ ...prev, is_published: e.target.value === "true" }))}><option value="false">false</option><option value="true">true</option></Select></Field>
-          <div className="flex items-end"><ActionButton onClick={() => runAction(createCourse, { success: "Created course.", reload: ["khoa-hoc", "tong-quan"] })}>Create course</ActionButton></div>
+          <div className="flex items-end"><ActionButton onClick={() => runAction(createCourse, { success: "Created course.", reload: ["khoa-hoc", "bai-hoc", "tong-quan"] })}>Create course</ActionButton></div>
           <Field label="Description" className="md:col-span-5"><Textarea rows={2} value={newCourse.description} onChange={(e) => setNewCourse((prev) => ({ ...prev, description: e.target.value }))} /></Field>
         </div>
 
@@ -888,7 +892,7 @@ export function AdminDashboard({
                   <Field label="Title"><Input value={draft.title ?? item.title ?? ""} onChange={(e) => setCourseDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), title: e.target.value } }))} /></Field>
                   <Field label="Level"><Select value={draft.level ?? item.level} onChange={(e) => setCourseDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), level: e.target.value } }))}>{LEVEL_OPTIONS.map((lv) => <option key={lv} value={lv}>{lv}</option>)}</Select></Field>
                   <Field label="Published"><Select value={String(draft.is_published ?? item.is_published)} onChange={(e) => setCourseDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), is_published: e.target.value === "true" } }))}><option value="false">false</option><option value="true">true</option></Select></Field>
-                  <div className="flex items-end gap-2"><ActionButton onClick={() => runAction(() => updateCourse(item), { success: `Updated course #${item.id}.`, reload: ["khoa-hoc", "tong-quan"] })}>Save</ActionButton><ActionButton danger onClick={() => runAction(() => deleteCourse(item), { success: `Deleted course #${item.id}.`, reload: ["khoa-hoc", "tong-quan", "bai-hoc"], invalidate: ["noi-dung-mooc"] })}>Delete</ActionButton></div>
+                  <div className="flex items-end gap-2"><ActionButton onClick={() => runAction(() => updateCourse(item), { success: `Updated course #${item.id}.`, reload: ["khoa-hoc", "bai-hoc", "tong-quan"] })}>Save</ActionButton><ActionButton danger onClick={() => runAction(() => deleteCourse(item), { success: `Deleted course #${item.id}.`, reload: ["khoa-hoc", "tong-quan", "bai-hoc"], invalidate: ["noi-dung-mooc"] })}>Delete</ActionButton></div>
                   <Field label="Description" className="md:col-span-5"><Textarea rows={2} value={draft.description ?? item.description ?? ""} onChange={(e) => setCourseDraftById((prev) => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), description: e.target.value } }))} /></Field>
                 </div>
                 <div className="mt-3 text-xs font-semibold text-slate-500">Lessons: {detailLessons.map((row) => `#${row.lesson_id}:${row.title}`).join(" | ") || "(empty)"}</div>

@@ -136,8 +136,8 @@ export default function Home({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <StatCard label="Tiến độ" value={`${overview.completionPercent}%`} hint="Trung bình tiến độ các course" />
-          <StatCard label="Streak" value={`${overview.streakDays} ngày`} hint="Tính từ quiz history và practice sessions." valueClassName="text-amber-400" />
-          <StatCard label="Bài hoàn thành" value={`${overview.completedLessons}/${overview.totalLessons}`} hint="Lesson đã hoàn tất trong course progress." />
+          <StatCard label="Streak" value={`${overview.streakDays} ngày`} hint=" " valueClassName="text-amber-400" />
+          <StatCard label="Bài hoàn thành" value={`${overview.completedLessons}/${overview.totalLessons}`} hint="Lesson đã hoàn tất trong course." />
           <StatCard label="Quiz trung bình" value={overview.avgQuizScore || "--"} hint="Điểm trung bình quiz của bạn." />
         </div>
       </section>
