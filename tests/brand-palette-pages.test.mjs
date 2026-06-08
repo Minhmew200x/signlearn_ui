@@ -16,6 +16,8 @@ test("no page shell keeps the old dark-first palette as its main surface", () =>
     "src/pages/TopicMoocPage.jsx",
     "src/pages/LessonPage.jsx",
     "src/pages/AIPracticePage.jsx",
+    "src/pages/PrivacyPolicy.jsx",
+    "src/pages/TermsOfService.jsx",
   ];
 
   const banned = /bg-slate-950|text-slate-950|bg-slate-900|from-slate-950|to-blue-950/;

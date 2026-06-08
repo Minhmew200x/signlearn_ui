@@ -5,6 +5,8 @@ import { AdminDashboard } from "./components/auth/AdminDashboard.jsx";
 import { getPostLoginPath, resolveAuthRedirect } from "./app/lib/sessionRouting.js";
 import { getApiBaseUrl, getGoogleAuthUrl, getGoogleCallbackExchangeUrl } from "./app/lib/runtimeConfig.js";
 import Landing from "./pages/Landing.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import TermsOfService from "./pages/TermsOfService.jsx";
 
 const API_BASE_URL = getApiBaseUrl();
 const DEFAULT_GOOGLE_AUTH_URL = getGoogleAuthUrl();
@@ -333,6 +335,12 @@ export default function AuthApp() {
   }
 
   const dashboardView = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const legalBackPath = status === "signed_in" && user ? "/home" : "/";
+  const legalPage = pathname === "/privacy-policy"
+    ? <PrivacyPolicy onBack={() => navigateTo(legalBackPath)} />
+    : pathname === "/terms-of-service"
+      ? <TermsOfService onBack={() => navigateTo(legalBackPath)} />
+      : null;
 
   useEffect(() => {
     if (status === "booting") return;
@@ -352,6 +360,8 @@ export default function AuthApp() {
   );
 
   const pendingRedirect = status === "booting" ? null : resolveAuthRedirect({ pathname, status, user });
+
+  if (legalPage) return legalPage;
 
   if (status === "booting" || pendingRedirect) return loadingView;
 
