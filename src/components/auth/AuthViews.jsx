@@ -97,7 +97,14 @@ export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, googleBu
                   <div ref={googleButtonRef} className={'flex min-h-12 items-center justify-center text-sm font-medium text-slate-500'}>{'Đang tải đăng nhập Google...'}</div>
                 </div>
               ) : (
-                <SecondaryButton onClick={onGoogleLogin} disabled={isSubmitting} className={'inline-flex items-center justify-center gap-3'}><GoogleIcon /><span>{'Đăng nhập với Google'}</span></SecondaryButton>
+                <SecondaryButton
+                  onClick={onGoogleLogin}
+                  disabled={isSubmitting}
+                  className="w-full inline-flex items-center justify-center gap-3 py-3"
+                >
+                  <GoogleIcon />
+                  <span>Đăng nhập với Google</span>
+                </SecondaryButton>
               )}
             </div>
             <p className={'mt-8 text-center text-sm font-medium text-slate-500'}>{isRegister ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}<button type={'button'} onClick={() => onModeChange(isRegister ? 'login' : 'register')} className={'font-semibold text-blue-700 transition hover:text-blue-800'} disabled={isSubmitting}>{isRegister ? 'Đăng nhập' : 'Đăng ký miễn phí'}</button></p>
