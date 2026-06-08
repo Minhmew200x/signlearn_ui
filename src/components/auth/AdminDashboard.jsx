@@ -175,7 +175,7 @@ export function AdminDashboard({
   pathname,
   navigateTo,
   apiBaseUrl,
-  googleAuthUrl,
+  googleClientId,
 }) {
   const activeSection = useMemo(() => getDashboardSection(pathname), [pathname]);
   const [sectionState, setSectionState] = useState({});
@@ -789,7 +789,7 @@ export function AdminDashboard({
                 <div className="text-sm font-black text-slate-900">System links</div>
                 <div className="mt-3 space-y-2 text-sm font-semibold text-slate-700">
                   <div>Dashboard route: {pathname || "/dashboard"}</div>
-                  <div>Google auth: {googleAuthUrl || "-"}</div>
+                  <div>Google client ID: {googleClientId || "-"}</div>
                   <div>Lazy section: {activeSection}</div>
                 </div>
               </div>
@@ -1497,4 +1497,5 @@ export function AdminDashboard({
     </div>
   );
 }
+
 

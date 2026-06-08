@@ -49,7 +49,7 @@ function GoogleIcon() {
   );
 }
 
-export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, isSubmitting, errorMessage }) {
+export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, googleButtonRef, showGoogleButton, isSubmitting, errorMessage }) {
   const [form, setForm] = useState({ email: '', password: '', full_name: '' });
   const isRegister = mode === 'register';
 
@@ -92,7 +92,13 @@ export function AuthForm({ mode, onModeChange, onSubmit, onGoogleLogin, isSubmit
             </div>
             <div className={'mt-8 space-y-4'}>
               <PrimaryButton onClick={() => onSubmit(form)} disabled={isSubmitting}>{isSubmitting ? 'Đang xử lý...' : isRegister ? 'Tạo tài khoản' : 'Đăng nhập'}</PrimaryButton>
-              <SecondaryButton onClick={onGoogleLogin} disabled={isSubmitting} className={'inline-flex items-center justify-center gap-3'}><GoogleIcon /><span>{'Đăng nhập với Google'}</span></SecondaryButton>
+              {showGoogleButton ? (
+                <div className={'rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]'}>
+                  <div ref={googleButtonRef} className={'flex min-h-12 items-center justify-center text-sm font-medium text-slate-500'}>{'Đang tải đăng nhập Google...'}</div>
+                </div>
+              ) : (
+                <SecondaryButton onClick={onGoogleLogin} disabled={isSubmitting} className={'inline-flex items-center justify-center gap-3'}><GoogleIcon /><span>{'Đăng nhập với Google'}</span></SecondaryButton>
+              )}
             </div>
             <p className={'mt-8 text-center text-sm font-medium text-slate-500'}>{isRegister ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}<button type={'button'} onClick={() => onModeChange(isRegister ? 'login' : 'register')} className={'font-semibold text-blue-700 transition hover:text-blue-800'} disabled={isSubmitting}>{isRegister ? 'Đăng nhập' : 'Đăng ký miễn phí'}</button></p>
           </div>

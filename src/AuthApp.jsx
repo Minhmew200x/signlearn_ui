@@ -1,16 +1,16 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SignlearnApp from "./App.jsx";
 import { AuthForm, HeaderActions } from "./components/auth/AuthViews.jsx";
 import { AdminDashboard } from "./components/auth/AdminDashboard.jsx";
 import { getPostLoginPath, resolveAuthRedirect } from "./app/lib/sessionRouting.js";
-import { getApiBaseUrl, getGoogleAuthUrl, getGoogleCallbackExchangeUrl } from "./app/lib/runtimeConfig.js";
+import { getApiBaseUrl, getGoogleClientId } from "./app/lib/runtimeConfig.js";
+import { authenticateWithGoogleIdToken, initializeGoogleIdentity, loadGoogleIdentityScript } from "./app/lib/googleIdentity.js";
 import Landing from "./pages/Landing.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import TermsOfService from "./pages/TermsOfService.jsx";
 
 const API_BASE_URL = getApiBaseUrl();
-const DEFAULT_GOOGLE_AUTH_URL = getGoogleAuthUrl();
-const GOOGLE_CALLBACK_EXCHANGE_URL = getGoogleCallbackExchangeUrl();
+const GOOGLE_CLIENT_ID = getGoogleClientId();
 const AUTH_STORAGE_KEY = "signlearn.auth.token_pair";
 
 function getCurrentPathname() {
@@ -123,49 +123,6 @@ async function apiRequest(path, { method = "GET", body, accessToken, query } = {
   return payload;
 }
 
-function extractCallbackTokenPair() {
-  const search = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const sources = [search, hash];
-
-  for (const params of sources) {
-    const accessToken = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-    if (accessToken && refreshToken) {
-      return {
-        tokenPair: {
-          access_token: accessToken,
-          refresh_token: refreshToken,
-          token_type: params.get("token_type") || "bearer",
-          expires_in: Number(params.get("expires_in") || 0),
-          user: null,
-        },
-        error: null,
-      };
-    }
-    const oauthError = params.get("error_description") || params.get("error");
-    if (oauthError) {
-      return { tokenPair: null, authCode: null, error: oauthError };
-    }
-
-    const authCode = params.get("code");
-    if (authCode) {
-      return { tokenPair: null, authCode, error: null };
-    }
-  }
-
-  return { tokenPair: null, authCode: null, error: null };
-}
-
-function cleanAuthParamsFromUrl() {
-  const search = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const keys = ["access_token", "refresh_token", "token_type", "expires_in", "error", "error_description", "code", "state"];
-  const hasAuthParams = keys.some((key) => search.has(key) || hash.has(key));
-  if (!hasAuthParams) return;
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
-
 export default function AuthApp() {
   const [status, setStatus] = useState("booting");
   const [mode, setMode] = useState("login");
@@ -174,6 +131,7 @@ export default function AuthApp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pathname, setPathname] = useState(() => getCurrentPathname());
+  const [googleButtonElement, setGoogleButtonElement] = useState(null);
 
   useEffect(() => {
     function handlePopState() {
@@ -196,43 +154,20 @@ export default function AuthApp() {
     setPathname(target);
   }
 
+  async function completeSignIn(tokenResponse) {
+    const me = tokenResponse?.user || (await apiRequest("/api/v1/auth/me", { accessToken: tokenResponse.access_token }));
+    const nextPair = { ...tokenResponse, user: me };
+    persistTokenPair(nextPair);
+    setTokenPair(nextPair);
+    setUser(me);
+    setStatus("signed_in");
+    navigateTo(getPostLoginPath(me), { replace: true });
+  }
+
   useEffect(() => {
-    async function exchangeGoogleCodeForToken(authCode) {
-      if (!GOOGLE_CALLBACK_EXCHANGE_URL) {
-        const error = new Error(
-          "Đã nhận được code Google nhưng chưa cấu hình VITE_GOOGLE_CALLBACK_EXCHANGE_URL."
-        );
-        error.status = 400;
-        throw error;
-      }
-
-      if (GOOGLE_CALLBACK_EXCHANGE_URL.includes("{code}")) {
-        const callbackUrl = GOOGLE_CALLBACK_EXCHANGE_URL.replace("{code}", encodeURIComponent(authCode));
-        return apiRequest(callbackUrl, { method: "GET" });
-      }
-
-      return apiRequest(GOOGLE_CALLBACK_EXCHANGE_URL, {
-        method: "POST",
-        body: { code: authCode },
-      });
-    }
-
     async function restoreSession() {
       setStatus("booting");
-      const callback = extractCallbackTokenPair();
-      cleanAuthParamsFromUrl();
-      if (callback.error) setErrorMessage(callback.error);
-
-      let callbackTokenPair = callback.tokenPair;
-      if (!callbackTokenPair && callback.authCode) {
-        try {
-          callbackTokenPair = await exchangeGoogleCodeForToken(callback.authCode);
-        } catch (exchangeError) {
-          setErrorMessage(exchangeError.message || "Không đổi được mã Google.");
-        }
-      }
-
-      const storedTokenPair = callbackTokenPair || loadStoredTokenPair();
+      const storedTokenPair = loadStoredTokenPair();
       if (!storedTokenPair?.access_token) {
         setStatus("signed_out");
         return;
@@ -277,6 +212,36 @@ export default function AuthApp() {
     restoreSession();
   }, []);
 
+  useEffect(() => {
+    if (!googleButtonElement || !GOOGLE_CLIENT_ID || status === "signed_in") return;
+
+    let cancelled = false;
+    loadGoogleIdentityScript({ document: window.document, globalObject: window })
+      .then((google) => {
+        if (cancelled) return;
+        initializeGoogleIdentity({
+          google,
+          clientId: GOOGLE_CLIENT_ID,
+          buttonElement: googleButtonElement,
+          onCredential: (response) => {
+            if (cancelled) return;
+            void handleGoogleCredential(response);
+          },
+        });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setErrorMessage((current) => current || error.message || "Không tải được đăng nhập Google.");
+      });
+
+    return () => {
+      cancelled = true;
+      if (googleButtonElement) {
+        googleButtonElement.innerHTML = "";
+      }
+    };
+  }, [googleButtonElement, status]);
+
   async function handleSubmit(formData) {
     setIsSubmitting(true);
     setErrorMessage("");
@@ -292,15 +257,23 @@ export default function AuthApp() {
         body: payload,
       });
 
-      const me = tokenResponse?.user || (await apiRequest("/api/v1/auth/me", { accessToken: tokenResponse.access_token }));
-      const nextPair = { ...tokenResponse, user: me };
-      persistTokenPair(nextPair);
-      setTokenPair(nextPair);
-      setUser(me);
-      setStatus("signed_in");
-      navigateTo(getPostLoginPath(me), { replace: true });
+      await completeSignIn(tokenResponse);
     } catch (error) {
       setErrorMessage(error.message || "Đăng nhập thất bại.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleCredential(response) {
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const tokenResponse = await authenticateWithGoogleIdToken(apiRequest, response?.credential);
+      await completeSignIn(tokenResponse);
+    } catch (error) {
+      setErrorMessage(error.message || "Đăng nhập Google thất bại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -327,11 +300,11 @@ export default function AuthApp() {
 
   function handleGoogleLogin() {
     setErrorMessage("");
-    if (!DEFAULT_GOOGLE_AUTH_URL) {
-      setErrorMessage("Chưa cấu hình URL Google login.");
+    if (!GOOGLE_CLIENT_ID) {
+      setErrorMessage("Chưa cấu hình VITE_GOOGLE_CLIENT_ID.");
       return;
     }
-    window.location.assign(DEFAULT_GOOGLE_AUTH_URL);
+    setErrorMessage("Không thể khởi tạo nút Google. Hãy tải lại trang và thử lại.");
   }
 
   const dashboardView = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
@@ -376,6 +349,8 @@ export default function AuthApp() {
         onModeChange={setMode}
         onSubmit={handleSubmit}
         onGoogleLogin={handleGoogleLogin}
+        googleButtonRef={setGoogleButtonElement}
+        showGoogleButton={Boolean(GOOGLE_CLIENT_ID)}
         isSubmitting={isSubmitting}
         errorMessage={errorMessage}
       />
@@ -393,7 +368,7 @@ export default function AuthApp() {
         onOpenUserUi={() => navigateTo("/home")}
         onLogout={handleLogout}
         apiBaseUrl={API_BASE_URL}
-        googleAuthUrl={DEFAULT_GOOGLE_AUTH_URL}
+        googleClientId={GOOGLE_CLIENT_ID}
         accessToken={tokenPair.access_token}
         apiRequest={apiRequest}
         pathname={pathname}
@@ -409,5 +384,3 @@ export default function AuthApp() {
     </div>
   );
 }
-
-
