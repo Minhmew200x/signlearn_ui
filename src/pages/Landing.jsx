@@ -1,4 +1,5 @@
 import React from "react";
+import logo from "../app/assets/logo.png";
 
 const PRIMARY_LINKS = [
   { label: "Lộ trình", href: "#lo-trinh" },
@@ -42,10 +43,17 @@ const USE_CASES = [
   },
 ];
 
-function BrandMark() {
+function Logo() {
   return (
-    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-100 ring-1 ring-white/70">
-      SL
+    <div className="flex items-center gap-3 px-1 py-1">
+      <img src={logo} alt="Signlearn" className="h-14 w-14 shrink-0 object-contain" />
+      <div className="leading-tight">
+        <div className="flex items-baseline text-[1.7rem] font-black tracking-tight text-slate-900">
+          <span className="text-blue-700">Sign</span>
+          <span className="text-amber-500">Learn</span>
+        </div>
+        <div className="text-sm font-semibold text-slate-500">Ký hiệu kết nối</div>
+      </div>
     </div>
   );
 }
@@ -82,13 +90,15 @@ function FeatureCard({ title, description, tone, children }) {
 export default function Landing({ onLogin }) {
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.16),_transparent_28rem),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.14),_transparent_28rem),linear-gradient(145deg,_#ffffff_0%,_#f8fbff_54%,_#fffdf8_100%)] text-slate-900">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/png" href="/src/app/assets/logo.png" />
+        <title>Signlearn</title>
+      </head>
       <header className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-5 py-5 md:px-8 md:py-6">
         <div className="flex items-center gap-3">
-          <BrandMark />
-          <div>
-            <div className="text-lg font-black tracking-tight text-slate-900">SignLearn</div>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Nền tảng học ký hiệu</div>
-          </div>
+          <Logo />
         </div>
 
         <nav className="hidden items-center gap-8 lg:flex">
@@ -182,7 +192,7 @@ export default function Landing({ onLogin }) {
           <div>
             <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">SignLearn là gì?</div>
             <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl">
-              Một landing page mang cảm giác editorial, nhưng kể đúng câu chuyện học tập của SignLearn.
+              Một ứng dụng học ngôn ngữ ký hiệu do người Việt và cho người Việt.
             </h2>
           </div>
           <div className="lg:pt-3">
