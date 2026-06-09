@@ -1,4 +1,4 @@
-function clamp(value, min = 0, max = 100) {
+﻿function clamp(value, min = 0, max = 100) {
   return Math.min(max, Math.max(min, Number(value || 0)));
 }
 
@@ -8,44 +8,44 @@ function round(value, digits = 2) {
 }
 
 const VERDICT_LABELS = {
-  excellent: 'Rat tot',
-  good: 'Tot',
-  pass: 'Dat',
-  retry: 'Can luyen them',
+  excellent: 'Rất tốt',
+  good: 'Tốt',
+  pass: 'Đạt',
+  retry: 'Cần luyện thêm',
 };
 
 const COMPONENT_ADVICE = {
   hand_score: {
-    label: 'hinh tay',
-    advice: 'Hay giu dang ngon tay ro hon va khoa hinh tay som hon.',
+    label: 'hình tay',
+    advice: 'Hãy giữ dáng ngón tay rõ hơn và khóa hình tay sớm hơn.',
   },
   pose_score: {
-    label: 'tu the va vi tri tay',
-    advice: 'Can giu dung vi tri tay, huong nguoi va do mo dong tac.',
+    label: 'tư thế và vị trí tay',
+    advice: 'Cần giữ đúng vị trí tay, hướng người và độ mở động tác.',
   },
   motion_score: {
-    label: 'huong chuyen dong',
-    advice: 'Lam ro duong di chuyen, tranh rung va doi huong qua nhanh.',
+    label: 'hướng chuyển động',
+    advice: 'Làm rõ đường di chuyển, tránh rung và đổi hướng quá nhanh.',
   },
   timing_score: {
-    label: 'nhip do',
-    advice: 'Can vao nhip dung thoi diem va giu cac pha dong tac deu hon.',
+    label: 'nhịp độ',
+    advice: 'Cần vào nhịp đúng thời điểm và giữ các pha động tác đều hơn.',
   },
   speed_score: {
-    label: 'toc do',
-    advice: 'Hay giu toc do on dinh, khong qua nhanh o dau va cuoi dong tac.',
+    label: 'tốc độ',
+    advice: 'Hãy giữ tốc độ ổn định, không quá nhanh ở đầu và cuối động tác.',
   },
   visibility_score: {
-    label: 'do ro trong khung hinh',
-    advice: 'Dua tay vao tron khung hinh va tranh che mat cac moc tay chinh.',
+    label: 'độ rõ trong khung hình',
+    advice: 'Đưa tay vào trọn khung hình và tránh che mất các mốc tay chính.',
   },
   facial_expression_score: {
-    label: 'net mat',
-    advice: 'Thu hien net mat ro hon de dong tac day du nghia hon.',
+    label: 'nét mặt',
+    advice: 'Thể hiện nét mặt rõ hơn để động tác đầy đủ nghĩa hơn.',
   },
   hand_position_score: {
-    label: 'diem dat tay',
-    advice: 'Can dua tay den dung diem dat va giu khoang cach on dinh hon.',
+    label: 'điểm đặt tay',
+    advice: 'Cần đưa tay đến đúng điểm đặt và giữ khoảng cách ổn định hơn.',
   },
 };
 
@@ -70,15 +70,15 @@ function getThresholdAdvice(finalScore, scoringConfig = {}) {
   const passThreshold = Number(scoringConfig.passThreshold || 60);
 
   if (Number(finalScore || 0) >= excellentThreshold) {
-    return 'Rat tot. Ban da nam chac dong tac va co the chuyen sang bai tiep theo.';
+    return 'Rất tốt. Bạn đã nắm chắc động tác và có thể chuyển sang bài tiếp theo.';
   }
   if (Number(finalScore || 0) >= goodThreshold) {
-    return 'Tot. Ban da lam dung phan lon dong tac, chi can on dinh hon de len muc rat tot.';
+    return 'Tốt. Bạn đã làm đúng phần lớn động tác, chỉ cần ổn định hơn để lên mức rất tốt.';
   }
   if (Number(finalScore || 0) >= passThreshold) {
-    return 'Ban da dat muc co ban. Nen luyen lai de dong tac ro va chinh xac hon.';
+    return 'Bạn đã đạt mức cơ bản. Nên luyện lại để động tác rõ và chính xác hơn.';
   }
-  return 'Chua dat. Hay xem lai video mau va thu quay lai mot lan nua.';
+  return 'Chưa đạt. Hãy xem lại video mẫu và thử quay lại một lần nữa.';
 }
 
 function getComponentAdvice(componentScores = {}) {
@@ -99,9 +99,9 @@ function getComponentAdvice(componentScores = {}) {
     .slice(0, 2);
 
   if (weakestEntries.length) {
-    const focusLabels = weakestEntries.map((entry) => entry.label).join(' va ');
+    const focusLabels = weakestEntries.map((entry) => entry.label).join(' và ');
     const detailAdvice = weakestEntries.map((entry) => entry.advice).join(' ');
-    return `Uu tien cai thien ${focusLabels}. ${detailAdvice}`;
+    return `Ưu tiên cải thiện ${focusLabels}. ${detailAdvice}`;
   }
 
   const mediumEntries = [...componentEntries]
@@ -110,12 +110,12 @@ function getComponentAdvice(componentScores = {}) {
     .slice(0, 2);
 
   if (mediumEntries.length) {
-    const focusLabels = mediumEntries.map((entry) => entry.label).join(' va ');
-    return `Cac thanh phan chinh da on. Hay lam deu hon o ${focusLabels}.`;
+    const focusLabels = mediumEntries.map((entry) => entry.label).join(' và ');
+    return `Các thành phần chính đã ổn. Hãy làm đều hơn ở ${focusLabels}.`;
   }
 
   const strongestEntry = [...componentEntries].sort((left, right) => right.score - left.score)[0];
-  return `Cac thanh phan dang dong deu. Diem manh hien tai la ${strongestEntry.label}.`;
+  return `Các thành phần đang đồng đều. Điểm mạnh hiện tại là ${strongestEntry.label}.`;
 }
 
 export function getScoreAdvice({ finalScore = 0, componentScores = {}, scoringConfig = {} } = {}) {
@@ -162,3 +162,4 @@ export function normalizeReferenceFrame(frame = [], mask = []) {
     mask: Array.isArray(mask) ? mask.map(Boolean) : [],
   };
 }
+

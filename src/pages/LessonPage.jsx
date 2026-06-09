@@ -32,8 +32,8 @@ function getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint) {
   const slug = lessonMaterial?.signSlug || mooc?.signSlug || null;
   return [{
     id: slug || mooc?.id || 'single-word',
-    word: lessonMaterial?.word || mooc?.word || 'Tu vung',
-    explanation: lessonMaterial?.explanation || mooc?.explanation || 'Chua co giai thich.',
+    word: lessonMaterial?.word || mooc?.word || 'Từ vựng',
+    explanation: lessonMaterial?.explanation || mooc?.explanation || 'Chưa có giải thích.',
     slug,
     videoUrl: lessonMaterial?.videoUrl || (slug ? makeSignVideoEndpoint(slug) : null),
   }];
@@ -52,10 +52,10 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
   return (
     <div className="rounded-2xl bg-white p-4 ring-1 ring-blue-100">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="text-sm font-black uppercase tracking-wide text-slate-500">Cau {index + 1}</div>
+        <div className="text-sm font-black uppercase tracking-wide text-slate-500">Câu {index + 1}</div>
         {resultAnswer ? (
           <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${resultAnswer.is_correct ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-            {resultAnswer.is_correct ? 'Dung' : 'Sai'}
+            {resultAnswer.is_correct ? 'Đúng' : 'Sai'}
           </span>
         ) : null}
       </div>
@@ -86,7 +86,7 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
             type="text"
             value={answerText}
             onChange={(event) => onChangeText(event.target.value)}
-            placeholder="Nhap cau tra loi"
+            placeholder="Nhập câu trả lời"
             className="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-blue-500"
           />
         </div>
@@ -119,10 +119,10 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
                         />
                       </div>
                     </div>
-                    <div className="mt-3">{option.option_text || option.video_slug || `Dap an ${optionIndex + 1}`}</div>
+                    <div className="mt-3">{option.option_text || option.video_slug || `Đáp án ${optionIndex + 1}`}</div>
                   </div>
                 ) : (
-                  <span>{option.option_text || `Dap an ${optionIndex + 1}`}</span>
+                  <span>{option.option_text || `Đáp án ${optionIndex + 1}`}</span>
                 )}
               </label>
             );
@@ -132,7 +132,7 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
 
       {resultAnswer ? (
         <div className="mt-3 text-xs font-semibold text-slate-500">
-          {resultAnswer.is_correct ? `+${resultAnswer.earned_points} diem` : `0 diem`}
+          {resultAnswer.is_correct ? `+${resultAnswer.earned_points} điểm` : '0 điểm'}
         </div>
       ) : null}
     </div>
@@ -273,23 +273,23 @@ export default function LessonPage({
   return (
     <main className="mx-auto w-full max-w-[1600px] px-5 py-10">
       <AppButton onClick={onBack} variant="ghost" className="mb-6">
-        {'<-'} Quay lai danh sach MOOC
+        {'<-'} Quay lại danh sách MOOC
       </AppButton>
 
       <section className="mb-6 flex flex-col gap-4 rounded-[1.6rem] border border-blue-100 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Mooc {mooc.moocNumber}</span>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">MOOC {mooc.moocNumber}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1">{topic.title}</span>
             <span className={`rounded-full px-3 py-1 ${isQuizStep ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'}`}>
-              {isQuizStep ? 'Buoc quiz' : 'Buoc tu vung'}
+              {isQuizStep ? 'Bước quiz' : 'Bước từ vựng'}
             </span>
           </div>
           <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">{mooc.lessonTitle}</h1>
         </div>
 
         <div className="rounded-[1.4rem] bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600 ring-1 ring-slate-100">
-          Buoc {currentStep}/{totalSteps}
+          Bước {currentStep}/{totalSteps}
         </div>
       </section>
 
@@ -303,9 +303,9 @@ export default function LessonPage({
                 Phần video từ vựng đã tách riêng. Qua quiz này để hoàn thành bài, sau đó bạn có thể qua MOOC tiếp theo hoặc luyện thêm bằng AI.
               </p>
               <div className="mt-4 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                <span className="rounded-full bg-white px-3 py-1">{quizQuestions.length} cau hoi</span>
+                <span className="rounded-full bg-white px-3 py-1">{quizQuestions.length} câu hỏi</span>
                 <span className="rounded-full bg-white px-3 py-1">Pass {lessonMaterial?.quiz?.passing_score}</span>
-                <span className="rounded-full bg-white px-3 py-1">{lessonMaterial?.quiz?.time_limit_seconds ? `${lessonMaterial.quiz.time_limit_seconds}s` : 'Khong gioi han'}</span>
+                <span className="rounded-full bg-white px-3 py-1">{lessonMaterial?.quiz?.time_limit_seconds ? `${lessonMaterial.quiz.time_limit_seconds}s` : 'Không giới hạn'}</span>
               </div>
             </div>
           ) : (
@@ -323,21 +323,21 @@ export default function LessonPage({
                     <div className="text-7xl">Video</div>
                     <div className="mt-4 text-3xl font-black">{displayVideoTitle}</div>
                     <div className="mt-2 text-lg font-semibold text-slate-300">
-                      {loadingMaterial ? 'Dang tai video tu API...' : 'Chua co video tu backend'}
+                      {loadingMaterial ? 'Đang tải video từ API...' : 'Chưa có video từ backend'}
                     </div>
                   </div>
                 )}
               </div>
 
               <div className="mt-5 rounded-[1.5rem] border border-slate-100 bg-slate-50 p-5">
-                <div className="text-sm font-black uppercase tracking-wide text-slate-500">Tu dang hoc</div>
+                <div className="text-sm font-black uppercase tracking-wide text-slate-500">Từ đang học</div>
                 <h2 className="mt-2 text-2xl font-black text-slate-900">{activeWord?.word || mooc.lessonTitle}</h2>
-                <p className="mt-2 text-base font-semibold leading-7 text-slate-600">{activeWord?.explanation || 'Chua co giai thich.'}</p>
+                <p className="mt-2 text-base font-semibold leading-7 text-slate-600">{activeWord?.explanation || 'Chưa có giải thích.'}</p>
               </div>
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <AppButton onClick={handleNextStep} disabled={savingProgress}>
-                  {savingProgress ? 'Dang luu...' : nextActionLabel}
+                  {savingProgress ? 'Đang lưu...' : nextActionLabel}
                 </AppButton>
               </div>
             </>
@@ -380,13 +380,13 @@ export default function LessonPage({
 
               {quizResult ? (
                 <div className={`mt-4 rounded-2xl p-3 text-sm font-black ${quizResult.passed ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
-                  Điểm quiz: {quizResult.score}/100 | Đúng {quizResult.correct_count}/{quizResult.total_questions} | {quizResult.passed ? 'ạn đã hoàn thành quiz và qua màn.' : 'Chưa qua môn, hãy làm lại quiz.'}
+                  Điểm quiz: {quizResult.score}/100 | Đúng {quizResult.correct_count}/{quizResult.total_questions} | {quizResult.passed ? 'Bạn đã hoàn thành quiz và qua màn.' : 'Chưa qua, hãy làm lại quiz.'}
                 </div>
               ) : null}
 
               <div className="mt-4 flex flex-wrap gap-3">
                 <AppButton onClick={submitQuiz} disabled={submittingQuiz}>
-                  {submittingQuiz ? 'Dang nop...' : 'Nop quiz'}
+                  {submittingQuiz ? 'Đang nộp...' : 'Nộp quiz'}
                 </AppButton>
                 {quizResult ? <AppButton onClick={resetQuizState} variant="soft">Làm lại quiz</AppButton> : null}
                 {passedQuiz && hasNextMooc ? <AppButton onClick={onGoNextMooc} variant="dark">Sang MOOC tiếp theo</AppButton> : null}
@@ -395,7 +395,7 @@ export default function LessonPage({
               {passedQuiz ? (
                 <div className="mt-4 rounded-[1.4rem] border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-emerald-50 p-5">
                   <div className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Luyện thêm chút nhé</div>
-                  <h3 className="mt-2 text-xl font-black text-slate-900">Thực hành bằng AI (optional)</h3>
+                  <h3 className="mt-2 text-xl font-black text-slate-900">Thực hành bằng AI (tùy chọn)</h3>
                   <p className="mt-2 text-sm font-semibold leading-7 text-slate-600">
                     Quiz đã qua. Bạn có thể sang box AI để luyện thêm trước khi qua MOOC tiếp theo.
                   </p>
@@ -407,7 +407,7 @@ export default function LessonPage({
             </div>
           ) : hasQuiz ? (
             <div className="mt-6 rounded-[1.6rem] border border-amber-100 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
-              {isLastWord ? 'Đã đến từ cuối cùng. Bấm nút next để sang quiz cuối bài.' : `Học hết ${vocabItems.length} từ trong MOOC này để mở quiz cuối bài.`}
+              {isLastWord ? 'Đã đến từ cuối cùng. Bấm nút tiếp theo để sang quiz cuối bài.' : `Học hết ${vocabItems.length} từ trong MOOC này để mở quiz cuối bài.`}
             </div>
           ) : null}
         </section>
@@ -428,7 +428,7 @@ export default function LessonPage({
                   ? (isCompleted ? '✓' : 'Q')
                   : item.type === 'ai'
                     ? 'AI'
-                  : (isCompleted ? '✓' : `${Math.min(index + 1, vocabItems.length)}`);
+                    : (isCompleted ? '✓' : `${Math.min(index + 1, vocabItems.length)}`);
 
                 return (
                   <div

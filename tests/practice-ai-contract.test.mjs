@@ -109,11 +109,11 @@ test("buildPracticeAttemptPayload matches backend practice attempt contract", ()
 });
 
 test("getVerdictLabel maps worker verdicts to user-facing labels", () => {
-  assert.equal(getVerdictLabel("excellent"), "Rat tot");
-  assert.equal(getVerdictLabel("good"), "Tot");
-  assert.equal(getVerdictLabel("pass"), "Dat");
-  assert.equal(getVerdictLabel("retry"), "Can luyen them");
-  assert.equal(getVerdictLabel("unknown"), "Can luyen them");
+  assert.equal(getVerdictLabel("excellent"), "Rất tốt");
+  assert.equal(getVerdictLabel("good"), "Tốt");
+  assert.equal(getVerdictLabel("pass"), "Đạt");
+  assert.equal(getVerdictLabel("retry"), "Cần luyện thêm");
+  assert.equal(getVerdictLabel("unknown"), "Cần luyện thêm");
 });
 
 test("getScoreAdvice combines threshold guidance with weak component advice", () => {
@@ -133,7 +133,7 @@ test("getScoreAdvice combines threshold guidance with weak component advice", ()
         motion_score: 91,
       },
     }),
-    "Rat tot. Ban da nam chac dong tac va co the chuyen sang bai tiep theo. Cac thanh phan dang dong deu. Diem manh hien tai la hinh tay.",
+    "Rất tốt. Bạn đã nắm chắc động tác và có thể chuyển sang bài tiếp theo. Các thành phần đang đồng đều. Điểm mạnh hiện tại là hình tay.",
   );
   assert.equal(
     getScoreAdvice({
@@ -145,7 +145,7 @@ test("getScoreAdvice combines threshold guidance with weak component advice", ()
         motion_score: 84,
       },
     }),
-    "Tot. Ban da lam dung phan lon dong tac, chi can on dinh hon de len muc rat tot. Cac thanh phan chinh da on. Hay lam deu hon o tu the va vi tri tay va hinh tay.",
+    "Tốt. Bạn đã làm đúng phần lớn động tác, chỉ cần ổn định hơn để lên mức rất tốt. Các thành phần chính đã ổn. Hãy làm đều hơn ở tư thế và vị trí tay và hình tay.",
   );
   assert.equal(
     getScoreAdvice({
@@ -157,7 +157,7 @@ test("getScoreAdvice combines threshold guidance with weak component advice", ()
         timing_score: 55,
       },
     }),
-    "Ban da dat muc co ban. Nen luyen lai de dong tac ro va chinh xac hon. Uu tien cai thien nhip do va hinh tay. Can vao nhip dung thoi diem va giu cac pha dong tac deu hon. Hay giu dang ngon tay ro hon va khoa hinh tay som hon.",
+    "Bạn đã đạt mức cơ bản. Nên luyện lại để động tác rõ và chính xác hơn. Ưu tiên cải thiện nhịp độ và hình tay. Cần vào nhịp đúng thời điểm và giữ các pha động tác đều hơn. Hãy giữ dáng ngón tay rõ hơn và khóa hình tay sớm hơn.",
   );
   assert.equal(
     getScoreAdvice({
@@ -168,7 +168,7 @@ test("getScoreAdvice combines threshold guidance with weak component advice", ()
         pose_score: 48,
       },
     }),
-    "Chua dat. Hay xem lai video mau va thu quay lai mot lan nua. Uu tien cai thien tu the va vi tri tay va hinh tay. Can giu dung vi tri tay, huong nguoi va do mo dong tac. Hay giu dang ngon tay ro hon va khoa hinh tay som hon.",
+    "Chưa đạt. Hãy xem lại video mẫu và thử quay lại một lần nữa. Ưu tiên cải thiện tư thế và vị trí tay và hình tay. Cần giữ đúng vị trí tay, hướng người và độ mở động tác. Hãy giữ dáng ngón tay rõ hơn và khóa hình tay sớm hơn.",
   );
 });
 
