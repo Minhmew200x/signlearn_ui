@@ -46,6 +46,7 @@ function getQuestionResultById(quizResult) {
 function QuizQuestionCard({ question, index, answerState, onSelectOption, onChangeText, playbackProps, resultAnswer }) {
   const showQuestionVideo = question.question_type !== 'video_choice' && question.resolvedVideoUrl;
   const hasOptionVideo = question.question_type === 'video_choice';
+  const questionVideoZoomClass = question.question_type === 'sign_to_text' ? 'scale-[1.5]' : 'scale-[1.25]';
   const selectedOptionKey = answerState?.selectedOptionKey || '';
   const answerText = answerState?.answerText || '';
 
@@ -66,7 +67,7 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
           <div className="aspect-video overflow-hidden">
             <video
               key={question.resolvedVideoUrl}
-              className="h-full w-full scale-[1.25] object-cover bg-blue-950"
+              className={`h-full w-full ${questionVideoZoomClass} object-cover bg-blue-950`}
               src={question.resolvedVideoUrl}
               {...playbackProps}
             />
@@ -113,7 +114,7 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
                       <div className="aspect-video overflow-hidden">
                         <video
                           key={option.resolvedVideoUrl}
-                          className="h-full w-full scale-[1.25] object-cover bg-blue-950"
+                          className={`h-full w-full ${questionVideoZoomClass} object-cover bg-blue-950`}
                           src={option.resolvedVideoUrl}
                           {...playbackProps}
                         />

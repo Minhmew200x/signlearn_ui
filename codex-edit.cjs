@@ -1,0 +1,13 @@
+const fs = require('fs');
+const path = 'src/pages/LessonPage.jsx';
+let s = fs.readFileSync(path, 'utf8');
+const oldDecl = "  const hasOptionVideo = question.question_type === 'video_choice';\n  const selectedOptionKey = answerState?.selectedOptionKey || '';";
+const newDecl = "  const hasOptionVideo = question.question_type === 'video_choice';\n  const questionVideoZoomClass = question.question_type === 'sign_to_text' ? 'scale-[1.5]' : 'scale-[1.25]';\n  const selectedOptionKey = answerState?.selectedOptionKey || '';";
+if (!s.includes(oldDecl)) throw new Error('decl pattern not found');
+s = s.replace(oldDecl, newDecl);
+const oldClass = 'className="h-full w-full scale-[1.25] object-cover bg-blue-950"';
+const newClass = 'className={`h-full w-full ${questionVideoZoomClass} object-cover bg-blue-950`}';
+const idx = s.indexOf(oldClass);
+if (idx < 0) throw new Error('class pattern not found');
+s = s.slice(0, idx) + newClass + s.slice(idx + oldClass.length);
+fs.writeFileSync(path, s, 'utf8');
