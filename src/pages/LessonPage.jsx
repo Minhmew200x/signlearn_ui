@@ -46,7 +46,7 @@ function getQuestionResultById(quizResult) {
 function QuizQuestionCard({ question, index, answerState, onSelectOption, onChangeText, playbackProps, resultAnswer }) {
   const showQuestionVideo = question.question_type !== 'video_choice' && question.resolvedVideoUrl;
   const hasOptionVideo = question.question_type === 'video_choice';
-  const questionVideoZoomClass = question.question_type === 'sign_to_text' ? 'scale-[1.5]' : 'scale-[1.25]';
+  const questionVideoZoomClass = question.question_type === 'sign_to_text' ? 'scale-[1.5]' : 'scale-[1.5]';
   const selectedOptionKey = answerState?.selectedOptionKey || '';
   const answerText = answerState?.answerText || '';
 
@@ -120,7 +120,6 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
                         />
                       </div>
                     </div>
-                    <div className="mt-3">{option.option_text || `Đáp án ${optionIndex + 1}`}</div>
                   </div>
                 ) : (
                   <span>{option.option_text || `Đáp án ${optionIndex + 1}`}</span>
