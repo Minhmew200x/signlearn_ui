@@ -46,7 +46,7 @@ function getQuestionResultById(quizResult) {
 function QuizQuestionCard({ question, index, answerState, onSelectOption, onChangeText, playbackProps, resultAnswer }) {
   const showQuestionVideo = question.question_type !== 'video_choice' && question.resolvedVideoUrl;
   const hasOptionVideo = question.question_type === 'video_choice';
-  const questionVideoZoomClass = question.question_type === 'sign_to_text' ? 'scale-[1.5]' : 'scale-[1.5]';
+  const questionVideoZoomClass = question.question_type === 'sign_to_text' ? 'scale-[1.4]' : 'scale-[1.4]';
   const selectedOptionKey = answerState?.selectedOptionKey || '';
   const answerText = answerState?.answerText || '';
 
