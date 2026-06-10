@@ -80,7 +80,7 @@ export class PracticeWebcamClient {
 
         await this.#resetWorker();
         this.#setPhase('worker_ready');
-        this.#setStatus(`Ready for ${reference.label}.`);
+        this.#setStatus(`Đã sẵn sàng để chấm điểm.`);
         this.options.onReady?.({
             reference: this.reference,
             modelAsset: this.modelAsset,

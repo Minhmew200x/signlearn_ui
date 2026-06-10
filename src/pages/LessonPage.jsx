@@ -122,7 +122,7 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
                     </div>
                   </div>
                 ) : (
-                  // <span>{option.option_text || `Đáp án ${optionIndex + 1}`}</span>
+                  <span></span>
                 )}
               </label>
             );
