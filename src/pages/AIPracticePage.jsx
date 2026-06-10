@@ -315,9 +315,6 @@ export default function AIPracticePage({
             <div>
               <div className="text-sm font-black uppercase tracking-wide text-blue-700">Từ đang chọn</div>
               <h2 className="mt-2 text-2xl font-black text-slate-900">{selectedTarget?.word || "Chưa có từ"}</h2>
-              <p className="mt-2 text-sm font-semibold text-slate-500">
-                {selectedTarget?.signSlug ? `sign_slug: ${selectedTarget.signSlug}` : "Bài này chưa có sign slug hợp lệ để chấm AI."}
-              </p>
             </div>
           </div>
 
