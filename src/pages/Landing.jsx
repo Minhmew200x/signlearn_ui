@@ -15,18 +15,18 @@ const FEATURE_CARDS = [
     tone: "light",
   },
   {
-    title: "Luôn biết mình đang ở đâu",
+    title: "Cố gắng học tập mỗi ngày",
     description: "Tiến độ lesson, bài đang học và hoạt động gần nhất luôn hiện rõ ngay khi quay lại.",
     tone: "dark",
   },
   {
-    title: "Thực hành đều tay mỗi ngày",
+    title: "Thực hành và chấm điểm theo AI",
     description: "Từ video mẫu đến luyện phản xạ bằng AI, SignLearn giúp việc ôn tập bớt đứt quãng.",
     tone: "dark",
   },
 ];
 
-const TRUST_ITEMS = ["Video minh họa", "Quiz", "AI Practice", "Blog cộng đồng", "Tiến độ học", "Khu vực quản trị"];
+const TRUST_ITEMS = ["Video minh họa", "Quiz", "AI Practice", "Blog cộng đồng", "Tiến độ học",];
 
 const USE_CASES = [
   {
@@ -197,7 +197,7 @@ export default function Landing({ onLogin }) {
           </div>
           <div className="lg:pt-3">
             <p className="max-w-2xl text-lg font-semibold leading-9 text-slate-600">
-              SignLearn dành cho người học cần một nơi để xem lộ trình, mở lesson, luyện bằng AI và theo dõi tiến độ thật. Giao diện mới giữ tone sáng của hệ thống hiện tại nhưng nâng nhịp thị giác để trang gốc bớt giống một màn giới thiệu tĩnh.
+              SignLearn  là nơi đáng tin cậy để cho người dùng trải nghiệm, học tập, kết nối cộng đồng.
             </p>
             <a href="#loi-ich" className="mt-6 inline-flex rounded-full bg-[#1d2e52] px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-200 transition hover:bg-[#284274]">
               Khám phá lợi ích
@@ -256,12 +256,11 @@ export default function Landing({ onLogin }) {
       <section id="ung-dung" className="mx-auto w-full max-w-[1600px] px-5 pb-16 md:px-8 md:pb-20">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[2rem] bg-transparent px-0 py-1 lg:px-1">
-            <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">SignLearn trong thực tế</div>
+            <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ứng dụng của SignLearn </div>
             <h2 className="mt-3 max-w-xl text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl">
-              Dùng cho học cá nhân, lớp học, và vận hành nội dung.
+              Dùng cho học cá nhân, lớp học, những môi trường đặc biệt.
             </h2>
             <p className="mt-5 max-w-xl text-base font-semibold leading-8 text-slate-600">
-              Landing mới không chỉ để giới thiệu. Nó cần dẫn đúng kỳ vọng: vào học, theo dõi tiến độ, mở blog, hoặc đi tới khu vực quản trị tùy vai trò tài khoản.
             </p>
           </div>
 

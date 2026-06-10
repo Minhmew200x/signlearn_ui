@@ -55,7 +55,7 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
                     <div className="flex items-center gap-2">
                       {isCompleted ? (
                         <span className="rounded-full bg-emerald-600 px-3 py-1 text-sm font-black text-white">
-                          {score > 0 ? `Hoàn thành (${score})` : "Hoàn thành"}
+                          Hoàn thành
                         </span>
                       ) : isUnlocked ? (
                         <span className="rounded-full bg-blue-600 px-3 py-1 text-sm font-black text-white">Đang mở</span>
