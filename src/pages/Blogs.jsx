@@ -72,24 +72,34 @@ function StatusBadge({ status }) {
   );
 }
 
+function SignLearnWordmark({ className = "" }) {
+  return (
+    <span className={`inline-flex items-baseline font-black tracking-tight ${className}`}>
+      <span className="text-blue-700">Sign</span>
+      <span className="text-amber-500">Learn</span>
+    </span>
+  );
+}
+
 function BlogCard({ post, categoryNames, onOpen }) {
   return (
-    <article className="flex min-h-[280px] flex-col rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex flex-wrap items-center gap-2">
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group flex min-h-[220px] w-full cursor-pointer flex-col rounded-[1.5rem] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+    >
+      <span className="flex flex-wrap items-center gap-2">
         <StatusBadge status={post.status} />
         {categoryNames.slice(0, 2).map((name) => (
-          <span key={name} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">{name}</span>
+          <span key={name} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-600">{name}</span>
         ))}
-      </div>
-      <h3 className="mt-4 text-2xl font-black leading-tight text-slate-900">{post.title}</h3>
-      <p className="mt-3 flex-1 text-sm font-semibold leading-7 text-slate-600">{post.summary || "Bài viết chưa có tóm tắt."}</p>
-      <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-        <div className="text-xs font-bold text-slate-500">{formatDate(post.publishedAt || post.createdAt)}</div>
-        <button type="button" onClick={onOpen} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-blue-100 hover:bg-blue-700">
-          Đọc bài
-        </button>
-      </div>
-    </article>
+      </span>
+      <span className="mt-3 text-xl font-black leading-snug text-slate-900 transition group-hover:text-blue-700">{post.title}</span>
+      <span className="mt-2 flex-1 text-sm font-medium leading-6 text-slate-600">{post.summary || "Bài viết chưa có tóm tắt."}</span>
+      <span className="mt-4 border-t border-slate-100 pt-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">
+        {formatDate(post.publishedAt || post.createdAt)}
+      </span>
+    </button>
   );
 }
 
@@ -99,19 +109,19 @@ function BlogSidebar({ posts, selectedSlug, onOpen, onBack }) {
       <button
         type="button"
         onClick={onBack}
-        className="w-full rounded-[1.5rem] border border-slate-200 bg-white px-4 py-3 text-left text-sm font-black text-slate-700 shadow-sm hover:bg-slate-50"
+        className="w-full rounded-[1.25rem] border border-slate-200 bg-white px-3.5 py-2.5 text-left text-sm font-black text-slate-700 shadow-sm hover:bg-slate-50"
       >
         ← Quay lại danh sách
       </button>
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
         <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Bài khác</div>
-        <div className="mt-4 space-y-2">
+        <div className="mt-3 space-y-2">
           {posts.map((post) => (
             <button
               key={post.id}
               type="button"
               onClick={() => onOpen(post)}
-              className={`w-full rounded-2xl px-4 py-3 text-left transition ${selectedSlug === post.slug ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
+              className={`w-full rounded-[1.15rem] px-3.5 py-2.5 text-left transition ${selectedSlug === post.slug ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
             >
               <div className="text-sm font-black leading-6">{post.title}</div>
               <div className={`mt-1 text-xs font-semibold ${selectedSlug === post.slug ? "text-blue-50" : "text-slate-500"}`}>{formatDate(post.publishedAt || post.createdAt)}</div>
@@ -267,54 +277,47 @@ export default function Blogs({ currentUser = null, accessToken = "", blogSlug =
   const isDetailRoute = Boolean(blogSlug);
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-5 py-8 md:px-8 md:py-10">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="inline-flex rounded-full bg-amber-50 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-700 ring-1 ring-amber-100">
+    <main className="mx-auto w-full max-w-[1360px] px-4 py-6 md:px-6 md:py-8">
+      {!isDetailRoute && (
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <div className="max-w-3xl">
+            <div className="inline-flex rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-amber-700 ring-1 ring-amber-100">
               Blog cộng đồng
             </div>
-            <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl">
-              Bài viết mới nhất từ cộng đồng SignLearn.
+            <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-4xl">
+              Bài viết mới từ cộng đồng <SignLearnWordmark className="text-inherit" />
             </h1>
-            <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-600">
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-slate-600">
+              Giao diện được giữ gọn để ưu tiên danh sách bài viết, lọc nhanh và chuyển thẳng vào nội dung.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={loadPosts}
-            disabled={loading}
-            className="min-h-12 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 disabled:bg-slate-300"
-          >
-            {loading ? "Đang tải" : "Tải lại"}
-          </button>
-        </div>
-      </section>
+        </section>
+      )}
 
       {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">{error}</div>}
 
       {!isDetailRoute && (
-        <section className="mt-8 grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="mt-6 grid gap-5 lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
               <label className="block">
                 <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Tìm bài</span>
                 <input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Nhập tiêu đề hoặc nội dung"
-                  className="mt-3 min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none ring-blue-100 transition focus:bg-white focus:ring-4"
+                  className="mt-3 min-h-11 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-900 outline-none ring-blue-100 transition focus:bg-white focus:ring-4"
                 />
               </label>
             </div>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
               <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Danh mục</div>
-              <div className="mt-4 space-y-2">
+              <div className="mt-3 space-y-2">
                 <button
                   type="button"
                   onClick={() => setActiveCategoryId("all")}
-                  className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-black ${activeCategoryId === "all" ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
+                  className={`w-full rounded-[1.15rem] px-3.5 py-2.5 text-left text-sm font-black ${activeCategoryId === "all" ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                 >
                   Tất cả bài viết ({publishedPosts.length})
                 </button>
@@ -325,7 +328,7 @@ export default function Blogs({ currentUser = null, accessToken = "", blogSlug =
                       key={category.id}
                       type="button"
                       onClick={() => setActiveCategoryId(String(category.id))}
-                      className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-black ${activeCategoryId === String(category.id) ? "bg-blue-600 text-white" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
+                      className={`w-full rounded-[1.15rem] px-3.5 py-2.5 text-left text-sm font-black ${activeCategoryId === String(category.id) ? "bg-blue-600 text-white" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                     >
                       {category.name} ({count})
                     </button>
@@ -336,10 +339,10 @@ export default function Blogs({ currentUser = null, accessToken = "", blogSlug =
             </div>
           </aside>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {loading && <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 text-sm font-semibold text-slate-500 shadow-sm">Đang tải bài viết...</div>}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {loading && <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-500 shadow-sm">Đang tải bài viết...</div>}
             {!loading && filteredPosts.length === 0 && (
-              <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-6 text-sm font-semibold text-slate-500">
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-5 text-sm font-semibold text-slate-500">
                 Không có bài viết phù hợp bộ lọc hiện tại.
               </div>
             )}
@@ -352,28 +355,28 @@ export default function Blogs({ currentUser = null, accessToken = "", blogSlug =
       )}
 
       {isDetailRoute && (
-        <section className="mt-8 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <section className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
           <BlogSidebar posts={detailPosts} selectedSlug={selectedPost?.slug || blogSlug} onOpen={openPost} onBack={goBack} />
 
-          <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-            <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-amber-400 p-6 text-white md:p-8">
+          <article className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+            <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-amber-400 p-5 text-white md:p-7">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={selectedPost?.status || "draft"} />
                 {selectedCategoryNames.map((name) => (
                   <span key={name} className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-slate-100">{name}</span>
                 ))}
               </div>
-              <h2 className="mt-4 text-3xl font-black leading-tight md:text-5xl">{selectedPost?.title || "Bài viết chưa có tiêu đề"}</h2>
+              <h2 className="mt-4 text-2xl font-black leading-tight md:text-4xl">{selectedPost?.title || "Bài viết chưa có tiêu đề"}</h2>
               <div className="mt-3 text-sm font-semibold text-slate-300">Cập nhật {formatDate(selectedPost?.updatedAt || selectedPost?.publishedAt || selectedPost?.createdAt)}</div>
             </div>
-            <div className="p-6 md:p-8">
+            <div className="p-5 md:p-7">
               {detailError && <div className="mb-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-700">{detailError}</div>}
               {detailLoading ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm font-semibold text-slate-500">Đang tải chi tiết...</div>
               ) : (
                 <>
-                  <p className="text-lg font-semibold leading-8 text-slate-600">{selectedPost?.summary || "Bài viết chưa có tóm tắt."}</p>
-                  <div className="mt-5 whitespace-pre-wrap text-base leading-8 text-slate-700">{selectedPost?.content || "Bài viết chưa có nội dung."}</div>
+                  <p className="text-base font-semibold leading-7 text-slate-600">{selectedPost?.summary || "Bài viết chưa có tóm tắt."}</p>
+                  <div className="mt-5 whitespace-pre-wrap text-[15px] leading-8 text-slate-700">{selectedPost?.content || "Bài viết chưa có nội dung."}</div>
                 </>
               )}
             </div>
