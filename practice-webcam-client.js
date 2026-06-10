@@ -66,7 +66,7 @@ export class PracticeWebcamClient {
 
     async init() {
         this.#setPhase('loading_resources');
-        this.#setStatus("Loading reference, model, and scoring config...");
+        this.#setStatus("Hệ thống sắp sẵn sàng rồi..., bạn chờ chút nhé!");
 
         const [reference, modelAsset, scoringConfig] = await Promise.all([
             this.#fetchReferenceKeypoints(),

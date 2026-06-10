@@ -419,7 +419,7 @@ export default function AIPracticePage({
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
             <h2 className="text-2xl font-black text-slate-900">Từ vựng trong bài</h2>
             <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
-              {signsLoading ? "Đang tải danh sách sign..." : "Chọn một từ trong bài. Worker sẽ nạp model và config chấm điểm cho sign đó trước khi mở camera."}
+              {signsLoading ? "Đang tải danh sách các ký hiệu..." : "Chọn một từ trong bài. Hệ thống AI sẽ nhận diện và chấm điểm cho bạn."}
             </p>
             <div className="mt-4 flex max-h-80 flex-wrap gap-2 overflow-auto rounded-2xl bg-blue-50 p-4">
               {practiceTargets.map((item) => {
@@ -441,7 +441,7 @@ export default function AIPracticePage({
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
             <h2 className="text-2xl font-black text-slate-900">Kết quả cuối</h2>
             {!result ? (
-              <div className="mt-4 rounded-2xl bg-slate-50 p-5 text-center text-base font-semibold text-slate-500">Chưa có kết quả. Luồng chuẩn: sẵn sàng → bật xem trước camera → đếm ngược → ghi hình → xử lý → hoàn tất.</div>
+              <div className="mt-4 rounded-2xl bg-slate-50 p-5 text-center text-base font-semibold text-slate-500">Chưa có kết quả. Hãy bật camera và thực hiện hành động để AI chấm điểm bạn nhé!</div>
             ) : (
               <div className="mt-4 space-y-4">
                 <div className={`rounded-2xl p-5 text-center ${verdictTone}`}>
