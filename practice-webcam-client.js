@@ -103,7 +103,7 @@ export class PracticeWebcamClient {
         this.videoElement.playsInline = true;
         await this.videoElement.play();
         this.#setPhase('camera_preview_on');
-        this.#setStatus("Camera preview is running.");
+        this.#setStatus("Camera đang chạy, bạn hãy tự tập ký hiệu theo mẫu và bấm \"Chấm điểm\" khi đã săn sàng nhé!");
     }
 
     stopPreview() {
