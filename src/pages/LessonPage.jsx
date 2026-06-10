@@ -119,10 +119,11 @@ function QuizQuestionCard({ question, index, answerState, onSelectOption, onChan
                           {...playbackProps}
                         />
                       </div>
+                      <div className="mt-3">{option.option_text || `Đáp án ${optionIndex + 1}`}</div>
                     </div>
                   </div>
                 ) : (
-                  <span></span>
+                  <span>{option.option_text || `Đáp án ${optionIndex + 1}`}</span>
                 )}
               </label>
             );
