@@ -107,7 +107,7 @@ export default function LearningDashboard({
           <section>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="mt-2 text-3xl font-black text-slate-900">Danh sách course</h2>
+                <h2 className="mt-2 text-3xl font-black text-slate-900">Danh sách khóa học</h2>
               </div>
             </div>
 
