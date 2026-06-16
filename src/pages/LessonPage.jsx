@@ -464,7 +464,7 @@ export default function LessonPage({
                     type="button"
                     onClick={() => canSelect && handleFlowItemSelect(item, index)}
                     disabled={!canSelect}
-                    className={`rounded-2xl border px-4 py-4 text-left transition ${isCompleted ? 'border-emerald-200 bg-emerald-50' : isActive ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'} ${canSelect ? 'hover:-translate-y-0.5 hover:shadow-sm' : ''}`}
+                    className={`w-full rounded-2xl border px-4 py-4 text-left transition ${isCompleted ? 'border-emerald-200 bg-emerald-50' : isActive ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'} ${canSelect ? 'hover:-translate-y-0.5 hover:shadow-sm' : ''}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black ${isCompleted ? 'bg-emerald-600 text-white' : isActive ? 'bg-blue-600 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200'}`}>

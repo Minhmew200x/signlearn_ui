@@ -29,6 +29,15 @@ export function normalizeProgress(rawProgress, topicList, moocsMap) {
   return base;
 }
 
+export function isMoocQuizPassed({ topicProgress = null, selectedMoocIndex = 0, backendLessonProgress = null }) {
+  const localBestScore = Number(topicProgress?.bestScores?.[selectedMoocIndex] || 0);
+  return Boolean(
+    localBestScore > 0
+    || backendLessonProgress?.status === "completed"
+    || Number(backendLessonProgress?.progress_percent || 0) >= 100
+  );
+}
+
 export function updateProgressAfterScore(prev, { topicId, currentMoocs, selectedMoocIndex, score }) {
   const existing = prev[topicId] || { unlockedMooc: 1, bestScores: {}, completedMoocs: {} };
   const nextUnlocked = Math.min(currentMoocs.length, Math.max(Number(existing.unlockedMooc || 1), selectedMoocIndex + 2));

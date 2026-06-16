@@ -4,7 +4,7 @@ import { USE_BACKEND_COURSES, LEARNING_PROGRESS_STORAGE_KEY } from "./app/consta
 import { apiRequest, assertListResponseShape } from "./app/lib/api.js";
 import { composeTopicCatalog, mapCourseDetailsToMoocs, mapCoursesToTopics } from "./app/lib/catalog.js";
 import { getMaterialKeyForMooc, loadLessonMaterial, makeSignVideoEndpoint } from "./app/lib/material.js";
-import { normalizeProgress, updateProgressAfterConfirm, updateProgressAfterScore } from "./app/lib/progress.js";
+import { isMoocQuizPassed, normalizeProgress, updateProgressAfterConfirm, updateProgressAfterScore } from "./app/lib/progress.js";
 import { getCurrentPathname, makeAiPath, makeBlogPath, makeHomePath, makeLessonPath, makeProfilePath, makeTopicPath, parseAppPath } from "./app/lib/routing.js";
 import Home from "./pages/Home.jsx";
 import Blogs from "./pages/Blogs.jsx";
@@ -327,10 +327,11 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     || currentBackendLessonProgress?.status === "completed"
     || Number(currentBackendLessonProgress?.progress_percent || 0) >= 100
   );
-  const currentQuizPassed = Boolean(
-    currentBackendLessonProgress?.status === "completed"
-    || Number(currentBackendLessonProgress?.progress_percent || 0) >= 100
-  );
+  const currentQuizPassed = isMoocQuizPassed({
+    topicProgress: currentTopicProgress,
+    selectedMoocIndex,
+    backendLessonProgress: currentBackendLessonProgress,
+  });
   const currentMaterialKey = getMaterialKeyForMooc(currentMooc);
   const currentLessonMaterial = currentMaterialKey ? lessonMaterialById[currentMaterialKey] : null;
 
