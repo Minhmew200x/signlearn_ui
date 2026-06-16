@@ -20,3 +20,9 @@ test("lesson flow sidebar keeps each item full width on its own row", async () =
 
   assert.match(source, /className=\{`w-full rounded-2xl border px-4 py-4 text-left transition/);
 });
+
+test("completed lesson review does not recreate vocab item list on every render", async () => {
+  const source = await readFile(new URL("../src/pages/LessonPage.jsx", import.meta.url), "utf8");
+
+  assert.match(source, /const vocabItems = useMemo\(/);
+});

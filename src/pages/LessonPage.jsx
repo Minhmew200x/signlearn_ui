@@ -184,7 +184,10 @@ export default function LessonPage({
     [quizQuestions, selectedAnswers],
   );
   const quizResultByQuestionId = useMemo(() => getQuestionResultById(quizResult), [quizResult]);
-  const vocabItems = topic && mooc ? getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint) : [];
+  const vocabItems = useMemo(
+    () => (topic && mooc ? getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint) : []),
+    [lessonMaterial, makeSignVideoEndpoint, mooc, topic],
+  );
   const hasNextMooc = moocIndex < moocs.length - 1;
   const hasQuiz = quizQuestions.length > 0;
   const lastWordIndex = Math.max(vocabItems.length - 1, 0);
