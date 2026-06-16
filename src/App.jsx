@@ -78,6 +78,7 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
   }, []);
 
   const routeState = useMemo(() => parseAppPath(pathname), [pathname]);
+  const isDeepLearningRoute = ["topic", "lesson", "ai"].includes(routeState.page);
 
   const navigateTo = useCallback((nextPath, { replace = false } = {}) => {
     const normalizedPath = nextPath && nextPath !== "/" ? nextPath.replace(/\/+$/, "") : "/";
@@ -107,6 +108,7 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
 
   useEffect(() => {
     if (!["topic", "lesson", "ai"].includes(routeState.page)) return;
+    if (catalogLoading || !catalogTopics.length) return;
 
     const routeTopicId = routeState.topicId;
     if (!routeTopicId) {
@@ -334,6 +336,12 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
   });
   const currentMaterialKey = getMaterialKeyForMooc(currentMooc);
   const currentLessonMaterial = currentMaterialKey ? lessonMaterialById[currentMaterialKey] : null;
+  const isRouteHydrating = isDeepLearningRoute && (
+    catalogLoading
+    || !catalogTopics.length
+    || !currentTopic
+    || ((routeState.page === "lesson" || routeState.page === "ai") && !currentMooc)
+  );
 
   const ensureLessonMaterial = useCallback(async (mooc) => {
     const materialKey = getMaterialKeyForMooc(mooc);
@@ -449,6 +457,30 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     navigateTo(makeLessonPath(currentTopic.id, next));
   }
 
+  const routeLoadingView = (
+    <main className="mx-auto w-full max-w-[1180px] px-5 py-10">
+      <section className="rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-8 text-slate-900 shadow-sm">
+        <div className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Đang đồng bộ</div>
+        <h1 className="mt-3 text-3xl font-black">Đang tải dữ liệu bài học</h1>
+        <p className="mt-3 text-base font-semibold leading-7 text-slate-600">
+          Trang sẽ hiển thị lại ngay khi hệ thống nạp xong khóa học và tiến độ của bạn.
+        </p>
+      </section>
+    </main>
+  );
+
+  const notFoundView = (
+    <main className="mx-auto w-full max-w-[1180px] px-5 py-10">
+      <section className="rounded-[2rem] border border-slate-100 bg-white p-8 text-slate-900 shadow-sm">
+        <div className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Không tìm thấy trang</div>
+        <h1 className="mt-3 text-3xl font-black">Đường dẫn này không còn hợp lệ</h1>
+        <p className="mt-3 text-base font-semibold leading-7 text-slate-600">
+          Kiểm tra lại liên kết hoặc quay về trang tổng quan để tiếp tục học.
+        </p>
+      </section>
+    </main>
+  );
+
   const contentByPage = {
     home: (
       <Home
@@ -547,12 +579,13 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
         onPracticeSaved={() => loadUserInsights()}
       />
     ),
+    not_found: notFoundView,
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
       <Header page={routeState.page} setPage={setPage} />
-      {contentByPage[routeState.page] || contentByPage.home}
+      {isRouteHydrating ? routeLoadingView : (contentByPage[routeState.page] || contentByPage.not_found)}
     </div>
   );
 }

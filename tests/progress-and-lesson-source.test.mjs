@@ -26,3 +26,10 @@ test("completed lesson review does not recreate vocab item list on every render"
 
   assert.match(source, /const vocabItems = useMemo\(/);
 });
+
+test("app waits for catalog before rejecting deep learning routes on reload", async () => {
+  const source = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+
+  assert.match(source, /if \(catalogLoading \|\| !catalogTopics\.length\) return;/);
+  assert.match(source, /Đang tải dữ liệu bài học/);
+});

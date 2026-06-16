@@ -66,5 +66,5 @@ export function parseAppPath(pathname) {
     return { page: "learning", pathname: "/hoc-tap" };
   }
 
-  return { page: "home", pathname: "/" };
+  return { page: "not_found", pathname: normalizedPath };
 }

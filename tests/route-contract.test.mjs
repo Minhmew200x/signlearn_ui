@@ -18,6 +18,7 @@ test("app home lives at /home while root remains the public landing route", () =
     pathname: "/blog/hoc-ngon-ngu-ky-hieu",
     blogSlug: "hoc-ngon-ngu-ky-hieu",
   });
+  assert.deepEqual(parseAppPath("/khong-ton-tai"), { page: "not_found", pathname: "/khong-ton-tai" });
 });
 
 test("post login target depends on role", () => {
