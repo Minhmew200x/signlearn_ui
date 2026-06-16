@@ -327,6 +327,10 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
     || currentBackendLessonProgress?.status === "completed"
     || Number(currentBackendLessonProgress?.progress_percent || 0) >= 100
   );
+  const currentQuizPassed = Boolean(
+    currentBackendLessonProgress?.status === "completed"
+    || Number(currentBackendLessonProgress?.progress_percent || 0) >= 100
+  );
   const currentMaterialKey = getMaterialKeyForMooc(currentMooc);
   const currentLessonMaterial = currentMaterialKey ? lessonMaterialById[currentMaterialKey] : null;
 
@@ -526,6 +530,7 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
         makeSignVideoEndpoint={makeSignVideoEndpoint}
         accessToken={accessToken}
         lessonCompleted={currentLessonCompleted}
+        persistedQuizPassed={currentQuizPassed}
       />
     ),
     ai: (

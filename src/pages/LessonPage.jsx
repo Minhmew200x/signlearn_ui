@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../app/lib/api.js';
 import { getQuizQuestions } from '../app/lib/quiz.js';
 import { buildQuizSubmitPayload, getUnansweredQuizQuestionIds } from '../app/lib/quizSubmission.js';
-import { buildLessonFlowItems, getLessonInitialActiveWordIndex, isAiPracticeUnlocked, isQuizPassed, isQuizUnlocked } from '../app/lib/lessonFlow.js';
+import { buildLessonFlowItems, getFlowItemTargetIndex, getLessonInitialActiveWordIndex, isAiPracticeUnlocked, isQuizPassed, isQuizUnlocked } from '../app/lib/lessonFlow.js';
 import { getLessonQuizTitle } from '../app/lib/practice.js';
 import { getLessonVideoPlaybackProps } from '../app/lib/videoPlayback.js';
 import { AppButton } from '../components/app/AppShell.jsx';
@@ -154,6 +154,7 @@ export default function LessonPage({
   makeSignVideoEndpoint,
   accessToken,
   lessonCompleted = false,
+  persistedQuizPassed = false,
 }) {
   const mooc = moocs[moocIndex];
   const [activeWordIndex, setActiveWordIndex] = useState(0);
@@ -196,10 +197,10 @@ export default function LessonPage({
   const isLastWord = !isQuizStep && activeWordIndex >= lastWordIndex;
   const totalSteps = Math.max(vocabItems.length + (hasQuiz ? 1 : 0), 1);
   const currentStep = Math.min(activeWordIndex + 1, totalSteps);
-  const passedQuiz = isQuizPassed(quizResult);
+  const passedQuiz = isQuizPassed(quizResult, persistedQuizPassed);
   const quizTitle = getLessonQuizTitle(lessonMaterial);
-  const aiUnlocked = isAiPracticeUnlocked({ activeWordIndex, vocabItems, hasQuiz, quizResult, lessonCompleted });
-  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, quizTitle, showAiPracticeStep: true, lessonCompleted });
+  const aiUnlocked = isAiPracticeUnlocked({ activeWordIndex, vocabItems, hasQuiz, quizResult, lessonCompleted, persistedQuizPassed });
+  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, quizTitle, showAiPracticeStep: true, lessonCompleted, persistedQuizPassed });
   const nextActionLabel = !isLastWord ? 'Từ tiếp theo' : hasQuiz && !lessonCompleted ? 'Sang quiz cuối bài' : 'Sang luyện AI';
 
   useEffect(() => {
@@ -247,6 +248,17 @@ export default function LessonPage({
     setSelectedAnswers({});
     setQuizResult(null);
     setQuizError('');
+  }
+
+  function handleFlowItemSelect(item, index) {
+    if (item?.type === 'ai' && aiUnlocked) {
+      onCompleteMooc?.();
+      return;
+    }
+
+    const targetIndex = getFlowItemTargetIndex({ item, index, vocabItems, hasQuiz });
+    if (targetIndex === null) return;
+    setActiveWordIndex(targetIndex);
   }
 
   async function submitQuiz() {
@@ -444,11 +456,15 @@ export default function LessonPage({
                   : item.type === 'ai'
                     ? 'AI'
                     : (isCompleted ? '✓' : `${Math.min(index + 1, vocabItems.length)}`);
+                const canSelect = item.type === 'ai' ? aiUnlocked : getFlowItemTargetIndex({ item, index, vocabItems, hasQuiz }) !== null;
 
                 return (
-                  <div
+                  <button
                     key={item.id}
-                    className={`rounded-2xl border px-4 py-4 transition ${isCompleted ? 'border-emerald-200 bg-emerald-50' : isActive ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}
+                    type="button"
+                    onClick={() => canSelect && handleFlowItemSelect(item, index)}
+                    disabled={!canSelect}
+                    className={`rounded-2xl border px-4 py-4 text-left transition ${isCompleted ? 'border-emerald-200 bg-emerald-50' : isActive ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'} ${canSelect ? 'hover:-translate-y-0.5 hover:shadow-sm' : ''}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black ${isCompleted ? 'bg-emerald-600 text-white' : isActive ? 'bg-blue-600 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200'}`}>
@@ -464,7 +480,7 @@ export default function LessonPage({
                         {isActive && item.explanation ? <p className="mt-2 text-sm font-semibold leading-7 text-slate-700">{item.explanation}</p> : null}
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

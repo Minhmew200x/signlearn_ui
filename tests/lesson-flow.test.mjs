@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildLessonFlowItems, getLessonInitialActiveWordIndex, isAiPracticeUnlocked } from "../src/app/lib/lessonFlow.js";
+import { buildLessonFlowItems, getFlowItemTargetIndex, getLessonInitialActiveWordIndex, isAiPracticeUnlocked } from "../src/app/lib/lessonFlow.js";
 
 test("completed mooc unlocks AI practice without requiring quiz completion", () => {
   assert.equal(
@@ -46,5 +46,32 @@ test("completed mooc starts lesson at quiz step so sidebar vocab stays green", (
       lessonCompleted: true,
     }),
     2,
+  );
+});
+
+test("persisted quiz completion keeps quiz marked done after re-entering lesson", () => {
+  const items = buildLessonFlowItems({
+    activeWordIndex: 2,
+    vocabItems: [{ id: 1, word: "Xin chao" }, { id: 2, word: "Cam on" }],
+    hasQuiz: true,
+    quizResult: null,
+    quizTitle: "Quiz bai hoc",
+    showAiPracticeStep: true,
+    lessonCompleted: true,
+    persistedQuizPassed: true,
+  });
+
+  assert.equal(items.find((item) => item.type === "quiz")?.status, "completed");
+});
+
+test("completed word items can target their original lesson step for review", () => {
+  assert.equal(
+    getFlowItemTargetIndex({
+      item: { type: "word", status: "completed" },
+      index: 1,
+      vocabItems: [{ id: 1, word: "Xin chao" }, { id: 2, word: "Cam on" }],
+      hasQuiz: true,
+    }),
+    1,
   );
 });

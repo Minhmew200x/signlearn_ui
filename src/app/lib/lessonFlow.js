@@ -6,14 +6,14 @@ export function isQuizUnlocked({ activeWordIndex = 0, vocabItems = [], hasQuiz =
   return activeWordIndex >= totalWords;
 }
 
-export function isQuizPassed(quizResult) {
-  return Boolean(quizResult?.passed);
+export function isQuizPassed(quizResult, persistedQuizPassed = false) {
+  return Boolean(persistedQuizPassed || quizResult?.passed);
 }
 
-export function isAiPracticeUnlocked({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, lessonCompleted = false }) {
+export function isAiPracticeUnlocked({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, lessonCompleted = false, persistedQuizPassed = false }) {
   if (lessonCompleted) return true;
   const words = Array.isArray(vocabItems) ? vocabItems : [];
-  return hasQuiz ? isQuizPassed(quizResult) : words.length === 0 || activeWordIndex >= Math.max(words.length - 1, 0);
+  return hasQuiz ? isQuizPassed(quizResult, persistedQuizPassed) : words.length === 0 || activeWordIndex >= Math.max(words.length - 1, 0);
 }
 
 export function getLessonInitialActiveWordIndex({ vocabItems = [], hasQuiz = false, lessonCompleted = false }) {
@@ -22,10 +22,17 @@ export function getLessonInitialActiveWordIndex({ vocabItems = [], hasQuiz = fal
   return hasQuiz ? words.length : Math.max(words.length - 1, 0);
 }
 
-export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, quizTitle = 'Quiz cuối bài', showAiPracticeStep = false, lessonCompleted = false }) {
+export function getFlowItemTargetIndex({ item = null, index = 0, vocabItems = [], hasQuiz = false }) {
+  if (!item) return null;
+  if (item.type === 'word') return index;
+  if (item.type === 'quiz' && hasQuiz) return Array.isArray(vocabItems) ? vocabItems.length : 0;
+  return null;
+}
+
+export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], hasQuiz = false, quizResult = null, quizTitle = 'Quiz cuối bài', showAiPracticeStep = false, lessonCompleted = false, persistedQuizPassed = false }) {
   const words = Array.isArray(vocabItems) ? vocabItems : [];
   const activeQuiz = isQuizUnlocked({ activeWordIndex, vocabItems: words, hasQuiz, lessonCompleted });
-  const passedQuiz = isQuizPassed(quizResult);
+  const passedQuiz = isQuizPassed(quizResult, persistedQuizPassed);
   const items = words.map((item, index) => ({
     id: `word-${item?.id || index}`,
     type: 'word',
@@ -45,7 +52,7 @@ export function buildLessonFlowItems({ activeWordIndex = 0, vocabItems = [], has
   }
 
   if (showAiPracticeStep) {
-    const aiUnlocked = isAiPracticeUnlocked({ activeWordIndex, vocabItems: words, hasQuiz, quizResult, lessonCompleted });
+    const aiUnlocked = isAiPracticeUnlocked({ activeWordIndex, vocabItems: words, hasQuiz, quizResult, lessonCompleted, persistedQuizPassed });
     items.push({
       id: 'ai-practice',
       type: 'ai',
