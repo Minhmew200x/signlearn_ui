@@ -62,7 +62,7 @@ export default function LearningDashboard({
                 </div>
                 <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl">Lộ trình của {displayName}</h1>
                 <p className="mt-4 max-w-3xl text-base font-semibold leading-8 text-slate-600">
-                  Chọn course để vào danh sách MOOC. Tiến độ từng lesson được đồng bộ theo tài khoản hiện tại.
+                  Chọn course để vào danh sách bài học. Tiến độ từng lesson được đồng bộ theo tài khoản hiện tại.
                 </p>
               </div>
               <button

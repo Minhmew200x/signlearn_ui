@@ -22,8 +22,8 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
       </section>
 
       <section className="mt-7 rounded-[2.2rem] border border-slate-100 bg-white p-6 shadow-sm">
-        <h2 className="text-3xl font-black text-slate-900">Danh sách MOOC</h2>
-        <p className="mt-2 text-lg font-semibold text-slate-600">Mỗi lần chỉ mở 1 MOOC theo thứ tự. Qua quiz của MOOC hiện tại để mở MOOC sau; AI là phần luyện thêm.</p>
+        <h2 className="text-3xl font-black text-slate-900">Danh sách bài học</h2>
+        <p className="mt-2 text-lg font-semibold text-slate-600">Hãy học các bài theo thứ tự, ôn luyện bài và luyện tập bằng webcam AI để học hiệu quả bạn nhé.</p>
 
         {!moocs.length ? (
           <div className="mt-5 rounded-2xl border border-dashed border-slate-300 p-6 text-center text-lg font-semibold text-slate-500">
@@ -49,7 +49,7 @@ export default function TopicMoocPage({ topic, moocs, topicProgress, courseProgr
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <div className="text-sm font-black uppercase tracking-wide text-slate-500">MOOC {mooc.moocNumber}</div>
+                      <div className="text-sm font-black uppercase tracking-wide text-slate-500">Bài học {mooc.moocNumber}</div>
                       <div className="mt-1 text-2xl font-black text-slate-900">{mooc.lessonTitle}</div>
                     </div>
                     <div className="flex items-center gap-2">

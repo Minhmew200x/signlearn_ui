@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../app/lib/api.js';
 import { getQuizQuestions } from '../app/lib/quiz.js';
 import { buildQuizSubmitPayload, getUnansweredQuizQuestionIds } from '../app/lib/quizSubmission.js';
-import { buildLessonFlowItems, isQuizPassed, isQuizUnlocked } from '../app/lib/lessonFlow.js';
+import { buildLessonFlowItems, getLessonInitialActiveWordIndex, isAiPracticeUnlocked, isQuizPassed, isQuizUnlocked } from '../app/lib/lessonFlow.js';
 import { getLessonQuizTitle } from '../app/lib/practice.js';
 import { getLessonVideoPlaybackProps } from '../app/lib/videoPlayback.js';
 import { AppButton } from '../components/app/AppShell.jsx';
@@ -153,6 +153,7 @@ export default function LessonPage({
   loadingMaterial,
   makeSignVideoEndpoint,
   accessToken,
+  lessonCompleted = false,
 }) {
   const mooc = moocs[moocIndex];
   const [activeWordIndex, setActiveWordIndex] = useState(0);
@@ -182,10 +183,7 @@ export default function LessonPage({
     [quizQuestions, selectedAnswers],
   );
   const quizResultByQuestionId = useMemo(() => getQuestionResultById(quizResult), [quizResult]);
-
-  if (!topic || !mooc) return null;
-
-  const vocabItems = getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint);
+  const vocabItems = topic && mooc ? getLessonVocabItems(mooc, lessonMaterial, makeSignVideoEndpoint) : [];
   const hasNextMooc = moocIndex < moocs.length - 1;
   const hasQuiz = quizQuestions.length > 0;
   const lastWordIndex = Math.max(vocabItems.length - 1, 0);
@@ -200,8 +198,16 @@ export default function LessonPage({
   const currentStep = Math.min(activeWordIndex + 1, totalSteps);
   const passedQuiz = isQuizPassed(quizResult);
   const quizTitle = getLessonQuizTitle(lessonMaterial);
-  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, quizTitle, showAiPracticeStep: true });
-  const nextActionLabel = !isLastWord ? 'Từ tiếp theo' : hasQuiz ? 'Sang quiz cuối bài' : 'Sang luyện AI';
+  const aiUnlocked = isAiPracticeUnlocked({ activeWordIndex, vocabItems, hasQuiz, quizResult, lessonCompleted });
+  const flowItems = buildLessonFlowItems({ activeWordIndex, vocabItems, hasQuiz, quizResult, quizTitle, showAiPracticeStep: true, lessonCompleted });
+  const nextActionLabel = !isLastWord ? 'Từ tiếp theo' : hasQuiz && !lessonCompleted ? 'Sang quiz cuối bài' : 'Sang luyện AI';
+
+  useEffect(() => {
+    if (!lessonCompleted) return;
+    setActiveWordIndex((prev) => Math.max(prev, getLessonInitialActiveWordIndex({ vocabItems, hasQuiz, lessonCompleted })));
+  }, [hasQuiz, lessonCompleted, vocabItems]);
+
+  if (!topic || !mooc) return null;
 
   async function ensureMoocConfirmed() {
     if (isMoocConfirmed) return true;
@@ -225,7 +231,7 @@ export default function LessonPage({
       return;
     }
 
-    if (hasQuiz) {
+    if (hasQuiz && !lessonCompleted) {
       setActiveWordIndex(quizStepIndex);
       ensureMoocConfirmed().catch(() => {});
       return;
@@ -274,13 +280,13 @@ export default function LessonPage({
   return (
     <main className="mx-auto w-full max-w-[1600px] px-5 py-10">
       <AppButton onClick={onBack} variant="ghost" className="mb-6">
-        {'<-'} Quay lại danh sách MOOC
+        {'<-'} Quay lại danh sách bài học
       </AppButton>
 
       <section className="mb-6 flex flex-col gap-4 rounded-[1.6rem] border border-blue-100 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">MOOC {mooc.moocNumber}</span>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Bài học {mooc.moocNumber}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1">{topic.title}</span>
             <span className={`rounded-full px-3 py-1 ${isQuizStep ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'}`}>
               {isQuizStep ? 'Bước quiz' : 'Bước từ vựng'}
@@ -301,7 +307,9 @@ export default function LessonPage({
               <div className="text-sm font-black uppercase tracking-wide text-blue-700">Xong từ vựng</div>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Bắt đầu quiz cuối bài</h2>
               <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-600">
-                Phần video từ vựng đã tách riêng. Qua quiz này để hoàn thành bài, sau đó bạn có thể qua MOOC tiếp theo hoặc luyện thêm bằng AI.
+                {lessonCompleted
+                  ? 'Bài này đã được đánh dấu hoàn thành. Quiz vẫn có thể làm lại, nhưng không còn là điều kiện bắt buộc để sang AI webcam.'
+                  : 'Phần video từ vựng đã tách riêng. Qua quiz này để hoàn thành bài, sau đó bạn có thể qua MOOC tiếp theo hoặc luyện thêm bằng AI.'}
               </p>
               <div className="mt-4 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
                 <span className="rounded-full bg-white px-3 py-1">{quizQuestions.length} câu hỏi</span>
@@ -344,7 +352,7 @@ export default function LessonPage({
             </>
           )}
 
-          {hasQuiz && isQuizUnlocked({ activeWordIndex, vocabItems, hasQuiz }) ? (
+          {hasQuiz && isQuizUnlocked({ activeWordIndex, vocabItems, hasQuiz, lessonCompleted }) ? (
             <div className="mt-6 rounded-[1.6rem] border border-blue-100 bg-blue-50 p-5">
               <div className="text-sm font-black uppercase tracking-wide text-blue-700">Quiz cuối bài</div>
               <h2 className="mt-2 text-2xl font-black text-slate-900">{quizTitle}</h2>
@@ -393,12 +401,14 @@ export default function LessonPage({
                 {passedQuiz && hasNextMooc ? <AppButton onClick={onGoNextMooc} variant="dark">Sang MOOC tiếp theo</AppButton> : null}
               </div>
 
-              {passedQuiz ? (
+              {aiUnlocked ? (
                 <div className="mt-4 rounded-[1.4rem] border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-emerald-50 p-5">
                   <div className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Luyện thêm chút nhé</div>
                   <h3 className="mt-2 text-xl font-black text-slate-900">Thực hành bằng AI (tùy chọn)</h3>
                   <p className="mt-2 text-sm font-semibold leading-7 text-slate-600">
-                    Quiz đã qua. Bạn có thể sang box AI để luyện thêm trước khi qua MOOC tiếp theo.
+                    {passedQuiz
+                      ? 'Quiz đã qua. Bạn có thể sang box AI để luyện thêm trước khi qua MOOC tiếp theo.'
+                      : 'MOOC này đã được đánh dấu hoàn thành. Bạn có thể sang AI webcam ngay mà không cần hoàn tất quiz.'}
                   </p>
                   <div className="mt-4">
                     <AppButton onClick={onCompleteMooc} variant="soft">Mở AI practice</AppButton>
@@ -408,7 +418,11 @@ export default function LessonPage({
             </div>
           ) : hasQuiz ? (
             <div className="mt-6 rounded-[1.6rem] border border-amber-100 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
-              {isLastWord ? 'Đã đến từ cuối cùng. Bấm nút tiếp theo để sang quiz cuối bài.' : `Học hết ${vocabItems.length} từ trong MOOC này để mở quiz cuối bài.`}
+              {isLastWord
+                ? lessonCompleted
+                  ? 'MOOC này đã hoàn thành. Bạn có thể sang AI webcam ngay ở bước tiếp theo.'
+                  : 'Đã đến từ cuối cùng. Bấm nút tiếp theo để sang quiz cuối bài.'
+                : `Học hết ${vocabItems.length} từ trong MOOC này để mở quiz cuối bài.`}
             </div>
           ) : null}
         </section>

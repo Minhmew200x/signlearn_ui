@@ -316,6 +316,17 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
       progressPercent: Number(backendProgress?.progress?.progress_percent || 0),
     };
   }, [courseProgressByCourseId, currentMoocs.length, currentTopic, progress]);
+  const currentBackendLessonProgress = useMemo(() => {
+    if (!currentTopic?.courseId || !currentMooc?.lessonId) return null;
+    return courseProgressByCourseId[currentTopic.courseId]?.lessons?.find(
+      (lesson) => Number(lesson.lesson_id) === Number(currentMooc.lessonId)
+    ) || null;
+  }, [courseProgressByCourseId, currentMooc?.lessonId, currentTopic?.courseId]);
+  const currentLessonCompleted = Boolean(
+    currentTopicProgress?.completedMoocs?.[selectedMoocIndex]
+    || currentBackendLessonProgress?.status === "completed"
+    || Number(currentBackendLessonProgress?.progress_percent || 0) >= 100
+  );
   const currentMaterialKey = getMaterialKeyForMooc(currentMooc);
   const currentLessonMaterial = currentMaterialKey ? lessonMaterialById[currentMaterialKey] : null;
 
@@ -514,6 +525,7 @@ export default function SignlearnApp({ currentUser = null, accessToken = "", onL
         loadingMaterial={loadingLessonId === currentMaterialKey}
         makeSignVideoEndpoint={makeSignVideoEndpoint}
         accessToken={accessToken}
+        lessonCompleted={currentLessonCompleted}
       />
     ),
     ai: (

@@ -290,7 +290,7 @@ export default function AIPracticePage({
           {"<-"} Quay lại MOOC cuối
         </AppButton>
         <AppButton onClick={onBackToMoocList} variant="ghost">
-          Danh sách MOOC
+          Danh sách bài học
         </AppButton>
       </div>
 
