@@ -15,6 +15,7 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.match(source, /export function AdminAnalytics\(\{ apiRequest, accessToken \}\)/);
   assert.match(source, /const \[draftRange, setDraftRange\] = useState\(\(\) => createDefaultAnalyticsRange\(\)\);/);
   assert.match(source, /const \[appliedRange, setAppliedRange\] = useState\(\(\) => createDefaultAnalyticsRange\(\)\);/);
+  assert.match(source, /const \[snapshotAccessToken, setSnapshotAccessToken\] = useState\(null\);/);
   assert.match(source, /Promise\.all\(\[/);
   assert.match(source, /\/api\/v1\/admin\/analytics\/summary/);
   assert.match(source, /\/api\/v1\/admin\/analytics\/timeseries/);
@@ -31,7 +32,7 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   );
   assert.match(
     source,
-    /\]\);\s+if \(!requestGateRef\.current\.isCurrent\(requestToken\)\) return;\s+setSnapshot\(\{ summary, timeseries, learning, content \}\);\s+setAppliedRange\(\{ \.\.\.range \}\);/
+    /\]\);\s+if \(!requestGateRef\.current\.isCurrent\(requestToken\)\) return;\s+setSnapshot\(\{ summary, timeseries, learning, content \}\);\s+setSnapshotAccessToken\(accessToken\);\s+setAppliedRange\(\{ \.\.\.range \}\);/
   );
   assert.match(
     source,
@@ -43,8 +44,14 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.match(source, /apiRequest\("\/api\/v1\/admin\/analytics\/content-performance", \{ method: "GET", accessToken, query: queries\.content \}\)/);
   assert.match(
     source,
-    /useEffect\(\(\) => \{\s+requestGateRef\.current\.invalidate\(\);\s+if \(!accessToken\) \{\s+setSnapshot\(null\);\s+setError\(""\);\s+setStatus\("idle"\);\s+\} else \{\s+setSnapshot\(null\);\s+setError\(""\);\s+loadDashboard\(\);\s+\}\s+return \(\) => \{\s+requestGateRef\.current\.invalidate\(\);\s+\};\s+\}, \[accessToken\]\);/
+    /useEffect\(\(\) => \{\s+requestGateRef\.current\.invalidate\(\);\s+if \(!accessToken\) \{\s+setSnapshot\(null\);\s+setSnapshotAccessToken\(null\);\s+setError\(""\);\s+setStatus\("idle"\);\s+\} else \{\s+setSnapshot\(null\);\s+setSnapshotAccessToken\(null\);\s+setError\(""\);\s+loadDashboard\(\);\s+\}\s+return \(\) => \{\s+requestGateRef\.current\.invalidate\(\);\s+\};\s+\}, \[accessToken\]\);/
   );
+  assert.match(
+    source,
+    /const visibleSnapshot = getVisibleAnalyticsSnapshot\(snapshot, snapshotAccessToken, accessToken\);/
+  );
+  assert.match(source, /\{isLoading && visibleSnapshot \? \(/);
+  assert.match(source, /\{!visibleSnapshot \? \(/);
   assert.match(
     source,
     /const rangeError = getRangeError\(range\);\s+if \(rangeError\) \{[\s\S]*?return;\s+\}\s+const queries = buildAnalyticsQueries\(range\);\s+[\s\S]*?apiRequest\("\/api\/v1\/admin\/analytics\/summary"/
@@ -56,7 +63,7 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
 
   assert.match(
     source,
-    /\{!snapshot \? \([\s\S]*?\{isLoading \|\| status === "idle" \? \([\s\S]*?Đang tải bảng điều khiển phân tích\.\.\.[\s\S]*?\) : \([\s\S]*?\{error \|\| "Không thể tải dữ liệu phân tích\."\}/
+    /\{!visibleSnapshot \? \([\s\S]*?\{isLoading \|\| status === "idle" \? \([\s\S]*?Đang tải bảng điều khiển phân tích\.\.\.[\s\S]*?\) : \([\s\S]*?\{error \|\| "Không thể tải dữ liệu phân tích\."\}/
   );
   assert.match(source, /<DateField label="Từ ngày" value=\{draftRange\.start_date\} onChange=/);
   assert.match(source, /<DateField label="Đến ngày" value=\{draftRange\.end_date\} onChange=/);

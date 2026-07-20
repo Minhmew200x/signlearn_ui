@@ -18,6 +18,10 @@ export function createAnalyticsRequestGate() {
   };
 }
 
+export function getVisibleAnalyticsSnapshot(snapshot, snapshotAccessToken, accessToken) {
+  return accessToken && snapshotAccessToken === accessToken ? snapshot : null;
+}
+
 function pad(value) {
   return String(value).padStart(2, "0");
 }

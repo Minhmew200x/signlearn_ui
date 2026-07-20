@@ -9,6 +9,7 @@ import {
   getCompletionRate,
   getMetricTrend,
   getRangeError,
+  getVisibleAnalyticsSnapshot,
   makeLinePoints,
 } from "../src/app/lib/adminAnalytics.js";
 
@@ -25,6 +26,15 @@ test("request gate invalidates stale analytics loads", () => {
 
   const later = gate.begin();
   assert.equal(gate.isCurrent(later), true);
+});
+
+test("analytics snapshots are visible only to the token that produced them", () => {
+  const snapshot = { summary: { total_users: 42 } };
+
+  assert.equal(getVisibleAnalyticsSnapshot(snapshot, "token-a", "token-a"), snapshot);
+  assert.equal(getVisibleAnalyticsSnapshot(snapshot, "token-a", ""), null);
+  assert.equal(getVisibleAnalyticsSnapshot(snapshot, "token-a", null), null);
+  assert.equal(getVisibleAnalyticsSnapshot(snapshot, "token-a", "token-b"), null);
 });
 
 test("creates an inclusive 30-day UTC analytics range", () => {

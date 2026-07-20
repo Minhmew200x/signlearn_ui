@@ -4,6 +4,7 @@ import {
   createAnalyticsRequestGate,
   createDefaultAnalyticsRange,
   getRangeError,
+  getVisibleAnalyticsSnapshot,
 } from "../../app/lib/adminAnalytics.js";
 
 function DateField({ label, value, onChange }) {
@@ -41,6 +42,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
   const [draftRange, setDraftRange] = useState(() => createDefaultAnalyticsRange());
   const [appliedRange, setAppliedRange] = useState(() => createDefaultAnalyticsRange());
   const [snapshot, setSnapshot] = useState(null);
+  const [snapshotAccessToken, setSnapshotAccessToken] = useState(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
@@ -66,6 +68,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
       ]);
       if (!requestGateRef.current.isCurrent(requestToken)) return;
       setSnapshot({ summary, timeseries, learning, content });
+      setSnapshotAccessToken(accessToken);
       setAppliedRange({ ...range });
       setStatus("ready");
     } catch (requestError) {
@@ -79,10 +82,12 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
     requestGateRef.current.invalidate();
     if (!accessToken) {
       setSnapshot(null);
+      setSnapshotAccessToken(null);
       setError("");
       setStatus("idle");
     } else {
       setSnapshot(null);
+      setSnapshotAccessToken(null);
       setError("");
       loadDashboard();
     }
@@ -100,6 +105,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
   }
 
   const isLoading = status === "loading";
+  const visibleSnapshot = getVisibleAnalyticsSnapshot(snapshot, snapshotAccessToken, accessToken);
 
   return (
     <section className="space-y-5">
@@ -120,13 +126,13 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
         </p>
       </div>
 
-      {isLoading && snapshot ? (
+      {isLoading && visibleSnapshot ? (
         <div role="status" aria-live="polite" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
           Dữ liệu gần nhất vẫn đang được hiển thị
         </div>
       ) : null}
 
-      {!snapshot ? (
+      {!visibleSnapshot ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
           {isLoading || status === "idle" ? (
             <p role="status" aria-live="polite" className="text-sm font-semibold text-slate-600">Đang tải bảng điều khiển phân tích...</p>
