@@ -11,3 +11,5 @@ dist/
 tmp*
 response_*.json
 foo.txt
+.superpowers/
+.worktrees/
