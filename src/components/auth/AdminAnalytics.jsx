@@ -104,8 +104,11 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
     setDraftRange(createDefaultAnalyticsRange());
   }
 
-  const isLoading = status === "loading";
   const visibleSnapshot = getVisibleAnalyticsSnapshot(snapshot, snapshotAccessToken, accessToken);
+  const isTokenTransition = Boolean(accessToken && snapshotAccessToken !== null && accessToken !== snapshotAccessToken);
+  const isLoading = status === "loading" || isTokenTransition;
+
+  if (!accessToken) return null;
 
   return (
     <section className="space-y-5">

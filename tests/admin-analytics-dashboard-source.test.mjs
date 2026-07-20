@@ -50,6 +50,11 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
     source,
     /const visibleSnapshot = getVisibleAnalyticsSnapshot\(snapshot, snapshotAccessToken, accessToken\);/
   );
+  assert.match(
+    source,
+    /const isTokenTransition = Boolean\(accessToken && snapshotAccessToken !== null && accessToken !== snapshotAccessToken\);/
+  );
+  assert.match(source, /const isLoading = status === "loading" \|\| isTokenTransition;/);
   assert.match(source, /\{isLoading && visibleSnapshot \? \(/);
   assert.match(source, /\{!visibleSnapshot \? \(/);
   assert.match(
@@ -70,6 +75,7 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.match(source, /<Button secondary onClick=\{resetToThirtyDays\} disabled=\{isLoading\}>30 ngày gần nhất<\/Button>/);
   assert.match(source, /<Button onClick=\{\(\) => loadDashboard\(draftRange\)\} disabled=\{isLoading\}>Áp dụng<\/Button>/);
   assert.match(source, /<Button secondary onClick=\{\(\) => loadDashboard\(\)\} disabled=\{isLoading\}>Tải lại<\/Button>/);
+  assert.match(source, /if \(!accessToken\) return null;/);
   assert.match(source, /function Button\(\{ children, secondary = false, className = "", \.\.\.props \}\)/);
   assert.match(source, /\[baseClassName, className\]\.filter\(Boolean\)\.join\(" "\)/);
   assert.match(source, /<Button className="mt-4" onClick=\{\(\) => loadDashboard\(\)\}>Thử lại<\/Button>/);
