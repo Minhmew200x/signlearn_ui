@@ -10,7 +10,7 @@ function toDateKey(date) {
 }
 
 function parseDateKey(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return null;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day ? date : null;
@@ -55,12 +55,16 @@ export function getCompletionRate(item) {
   const attempts = Number(item?.attempts);
   const completed = Number(item?.completed_attempts);
   if (!Number.isFinite(attempts) || attempts <= 0 || !Number.isFinite(completed)) return null;
-  return Math.round((completed / attempts) * 10000) / 100;
+  const safeCompleted = Math.min(Math.max(completed, 0), attempts);
+  return Math.round((safeCompleted / attempts) * 10000) / 100;
 }
 
 export function makeLinePoints(points, key, width, height) {
   if (!points?.length) return "";
-  const values = points.map((point) => Math.max(0, Number(point?.[key]) || 0));
+  const values = points.map((point) => {
+    const value = Number(point?.[key]);
+    return Number.isFinite(value) ? Math.max(0, value) : 0;
+  });
   const maximum = Math.max(...values, 1);
   const denominator = Math.max(points.length - 1, 1);
   return values.map((value, index) => `${Math.round((index / denominator) * width)},${Math.round(height - ((value / maximum) * height))}`).join(" ");
