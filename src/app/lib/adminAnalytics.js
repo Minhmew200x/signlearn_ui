@@ -80,13 +80,17 @@ export function getCompletionRate(item) {
   return Math.round((safeCompleted / attempts) * 10000) / 100;
 }
 
-export function makeLinePoints(points, key, width, height) {
+export function makeLinePoints(points, key, width, height, sharedMaximum) {
   if (!points?.length) return "";
   const values = points.map((point) => {
     const value = Number(point?.[key]);
     return Number.isFinite(value) ? Math.max(0, value) : 0;
   });
-  const maximum = Math.max(...values, 1);
+  const inferredMaximum = Math.max(...values, 1);
+  const requestedMaximum = Number(sharedMaximum);
+  const maximum = Number.isFinite(requestedMaximum) && requestedMaximum > 0
+    ? Math.max(requestedMaximum, inferredMaximum)
+    : inferredMaximum;
   const denominator = Math.max(points.length - 1, 1);
   return values.map((value, index) => `${Math.round((index / denominator) * width)},${Math.round(height - ((value / maximum) * height))}`).join(" ");
 }

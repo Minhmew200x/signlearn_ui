@@ -80,3 +80,7 @@ test("scales chronological activity values into deterministic SVG points", () =>
   assert.equal(makeLinePoints([{ active_learners: 0 }, { active_learners: 10 }, { active_learners: 5 }], "active_learners", 100, 40), "0,40 50,0 100,20");
   assert.equal(makeLinePoints([{ active_learners: 0 }, { active_learners: Infinity }], "active_learners", 100, 40), "0,40 100,40");
 });
+
+test("uses an explicit shared maximum to keep lower activity values below the chart top", () => {
+  assert.equal(makeLinePoints([{ active_learners: 10 }], "active_learners", 100, 40, 20), "0,20");
+});

@@ -110,3 +110,28 @@ test("AdminAnalytics renders dependency-free Vietnamese analytics visuals from t
   assert.match(source, /<svg[\s>]/);
   assert.doesNotMatch(source, /(?:from\s+["']|import\s+)[^\n]*\b(?:recharts|chart\.js|victory)\b/i);
 });
+
+test("AdminAnalytics hardens dashboard visuals for malformed records, shared chart scales, and accessible controls", () => {
+  const source = fs.readFileSync(componentPath, "utf8");
+
+  assert.match(source, /function normalizeAnalyticsRecords\(value\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.timeseries\?\.points\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.learning\?\.courses\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.learning\?\.lessons\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.learning\?\.quizzes\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.content\?\.top_signs\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.content\?\.practice_statuses\)/);
+  assert.match(source, /normalizeAnalyticsRecords\(visibleSnapshot\?\.content\?\.sign_difficulties\)/);
+  assert.match(source, /function getRecordKey\(prefix, value, index\)/);
+  assert.match(source, /function normalizeAnalyticsPercent\(value\)/);
+  assert.match(source, /role="progressbar"/);
+  assert.match(source, /aria-valuemin=\{0\}/);
+  assert.match(source, /aria-valuemax=/);
+  assert.match(source, /aria-valuenow=/);
+  assert.match(source, /aria-valuetext=/);
+  assert.match(source, /sharedMaximum/);
+  assert.match(source, /makeLinePoints\(points, item\.key, plotWidth, chartHeight, sharedMaximum\)/);
+  assert.match(source, /activity-chart-summary/);
+  assert.match(source, /aria-pressed=\{performanceTab === tab\}/);
+  assert.doesNotMatch(source, /role="tab(?:list)?"/);
+});

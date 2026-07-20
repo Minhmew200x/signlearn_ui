@@ -52,6 +52,25 @@ function toSafeNumber(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function normalizeAnalyticsPercent(value) {
+  return Math.min(Math.max(toSafeNumber(value), 0), 100);
+}
+
+function normalizeAnalyticsRecords(value) {
+  return Array.isArray(value)
+    ? value.filter((item) => item && typeof item === "object" && !Array.isArray(item))
+    : [];
+}
+
+function getRecordText(value, fallback) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function getRecordKey(prefix, value, index) {
+  const identifier = typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
+  return identifier ? `${prefix}-${identifier}` : `${prefix}-${index}`;
+}
+
 function formatAnalyticsNumber(value) {
   return toSafeNumber(value).toLocaleString("vi-VN");
 }
@@ -72,13 +91,14 @@ function MetricCard({ label, value, metric, percent = false, detail }) {
       ? "bg-rose-50 text-rose-700"
       : "bg-slate-100 text-slate-600";
   const resolvedValue = metric?.value ?? value;
+  const displayValue = percent ? normalizeAnalyticsPercent(resolvedValue) : resolvedValue;
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
       <div className="mt-3 flex items-end justify-between gap-3">
         <p className="text-2xl font-black tracking-tight text-slate-950">
-          {percent ? formatAnalyticsPercent(resolvedValue) : formatAnalyticsNumber(resolvedValue)}
+          {percent ? formatAnalyticsPercent(displayValue) : formatAnalyticsNumber(displayValue)}
         </p>
         {trend ? <span className={`rounded-full px-2 py-1 text-xs font-black ${trendClassName}`}>{trend.label}</span> : null}
       </div>
@@ -87,14 +107,22 @@ function MetricCard({ label, value, metric, percent = false, detail }) {
   );
 }
 
-function ProgressBar({ value, amber = false }) {
-  const safeValue = Math.min(Math.max(toSafeNumber(value), 0), 100);
+function ProgressBar({ percent, amber = false }) {
+  const safePercent = toSafeNumber(percent);
 
   return (
-    <div className="h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${formatAnalyticsPercent(safeValue)} hoàn thành`}>
+    <div
+      className="h-2 overflow-hidden rounded-full bg-slate-100"
+      role="progressbar"
+      aria-label="Tiến độ trung bình"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={safePercent}
+      aria-valuetext={formatAnalyticsPercent(safePercent)}
+    >
       <div
         className={`h-full rounded-full ${amber ? "bg-amber-400" : "bg-emerald-500"}`}
-        style={{ width: `${safeValue}%` }}
+        style={{ width: `${safePercent}%` }}
       />
     </div>
   );
@@ -114,6 +142,15 @@ function ActivityChart({ points, isPrimary, onToggle }) {
       ];
   const chartWidth = 720;
   const chartHeight = 220;
+  const plotLeft = 44;
+  const plotWidth = chartWidth - plotLeft;
+  const sharedMaximum = Math.max(
+    ...series.flatMap((item) => points.map((point) => Math.max(toSafeNumber(point?.[item.key]), 0))),
+    1
+  );
+  const startDate = getRecordText(points[0]?.date, "không xác định");
+  const endDate = getRecordText(points.at(-1)?.date, "không xác định");
+  const seriesSummary = series.map((item) => item.label).join(", ");
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6" aria-labelledby="activity-chart-heading">
@@ -146,6 +183,9 @@ function ActivityChart({ points, isPrimary, onToggle }) {
         <div className="mt-5"><EmptyPanel>Chưa có dữ liệu hoạt động trong khoảng thời gian này.</EmptyPanel></div>
       ) : (
         <>
+          <p id="activity-chart-summary" className="sr-only">
+            Biểu đồ đang hiển thị {seriesSummary} từ {startDate} đến {endDate}. Giá trị tối đa trên trục dọc là {formatAnalyticsNumber(sharedMaximum)}.
+          </p>
           <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2">
             {series.map((item) => (
               <span key={item.key} className="inline-flex items-center gap-2 text-xs font-bold text-slate-600">
@@ -159,34 +199,44 @@ function ActivityChart({ points, isPrimary, onToggle }) {
               className="min-w-[620px]"
               viewBox={`0 0 ${chartWidth} ${chartHeight + 34}`}
               role="img"
-              aria-labelledby="activity-chart-title activity-chart-description"
+              aria-labelledby="activity-chart-title activity-chart-summary"
             >
               <title id="activity-chart-title">Biểu đồ hoạt động học tập theo ngày</title>
-              <desc id="activity-chart-description">Các đường biểu diễn dữ liệu hoạt động trong khoảng ngày đã chọn.</desc>
               {[0, 1, 2, 3].map((line) => (
-                <line
-                  key={line}
-                  x1="0"
-                  x2={chartWidth}
-                  y1={Math.round((chartHeight / 3) * line)}
-                  y2={Math.round((chartHeight / 3) * line)}
-                  stroke="#e2e8f0"
-                  strokeDasharray="4 4"
-                />
+                <g key={line}>
+                  <line
+                    x1={plotLeft}
+                    x2={chartWidth}
+                    y1={Math.round((chartHeight / 3) * line)}
+                    y2={Math.round((chartHeight / 3) * line)}
+                    stroke="#e2e8f0"
+                    strokeDasharray="4 4"
+                  />
+                  <text
+                    x="0"
+                    y={Math.round((chartHeight / 3) * line) + (line === 0 ? 10 : -4)}
+                    fill="#64748b"
+                    fontSize="12"
+                  >
+                    {formatAnalyticsNumber(sharedMaximum * (1 - (line / 3)))}
+                  </text>
+                </g>
               ))}
-              {series.map((item) => (
-                <polyline
-                  key={item.key}
-                  fill="none"
-                  stroke={item.color}
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  points={makeLinePoints(points, item.key, chartWidth, chartHeight)}
-                />
-              ))}
-              <text x="0" y={chartHeight + 26} fill="#64748b" fontSize="12">{points[0]?.date}</text>
-              <text x={chartWidth} y={chartHeight + 26} fill="#64748b" fontSize="12" textAnchor="end">{points.at(-1)?.date}</text>
+              <g transform={`translate(${plotLeft} 0)`}>
+                {series.map((item) => (
+                  <polyline
+                    key={item.key}
+                    fill="none"
+                    stroke={item.color}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={makeLinePoints(points, item.key, plotWidth, chartHeight, sharedMaximum)}
+                  />
+                ))}
+              </g>
+              <text x={plotLeft} y={chartHeight + 26} fill="#64748b" fontSize="12">{startDate}</text>
+              <text x={chartWidth} y={chartHeight + 26} fill="#64748b" fontSize="12" textAnchor="end">{endDate}</text>
             </svg>
           </div>
         </>
@@ -196,28 +246,76 @@ function ActivityChart({ points, isPrimary, onToggle }) {
 }
 
 function BreakdownBars({ items, type }) {
-  if (items.length === 0) {
+  const records = normalizeAnalyticsRecords(items);
+  if (records.length === 0) {
     return <EmptyPanel>{type === "status" ? "Chưa có trạng thái luyện tập để hiển thị." : "Chưa có dữ liệu độ khó ký hiệu."}</EmptyPanel>;
   }
 
-  const total = Math.max(items.reduce((sum, item) => sum + toSafeNumber(item?.value), 0), 1);
+  const total = Math.max(records.reduce((sum, item) => sum + Math.max(toSafeNumber(item.value), 0), 0), 1);
   const isStatus = type === "status";
 
   return (
     <div className="space-y-3">
-      {items.map((item) => {
-        const label = isStatus ? item.label : (difficultyLabels[item.label] ?? item.label);
-        const percent = Math.round((toSafeNumber(item.value) / total) * 100);
+      {records.map((item, index) => {
+        const backendLabel = getRecordText(item.label, "Không xác định");
+        const label = isStatus ? backendLabel : (difficultyLabels[backendLabel] ?? backendLabel);
+        const value = Math.max(toSafeNumber(item.value), 0);
+        const percent = normalizeAnalyticsPercent((value / total) * 100);
         return (
-          <div key={`${type}-${item.label}`}>
+          <div key={getRecordKey(type, item.label, index)}>
             <div className="mb-1 flex items-center justify-between gap-3 text-sm font-bold text-slate-700">
               <span>{label}</span>
-              <span>{formatAnalyticsNumber(item.value)}</span>
+              <span>{formatAnalyticsNumber(value)}</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-2 overflow-hidden rounded-full bg-slate-100"
+              role="progressbar"
+              aria-label={label}
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={value}
+              aria-valuetext={`${formatAnalyticsNumber(value)} trên ${formatAnalyticsNumber(total)} (${formatAnalyticsPercent(percent)})`}
+            >
               <div className={`h-full rounded-full ${isStatus ? "bg-emerald-500" : "bg-amber-400"}`} style={{ width: `${percent}%` }} />
             </div>
           </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function LearningPerformanceList({ items, type }) {
+  const records = normalizeAnalyticsRecords(items);
+  const isCourse = type === "course";
+  const noun = isCourse ? "khóa học" : "bài học";
+  const titleFallback = isCourse ? "Khóa học chưa đặt tên" : "Bài học chưa đặt tên";
+
+  if (records.length === 0) {
+    return <EmptyPanel>Chưa có dữ liệu {noun} trong khoảng thời gian này.</EmptyPanel>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {records.map((item, index) => {
+        const progressPercent = normalizeAnalyticsPercent(item.average_progress_percent);
+        const identifier = isCourse ? item.course_id : item.lesson_id;
+        return (
+          <article key={getRecordKey(type, identifier, index)} className="rounded-2xl border border-slate-200 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="font-black text-slate-900">{getRecordText(item.title, titleFallback)}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  {formatAnalyticsNumber(item.active_learners)} học viên hoạt động · {formatAnalyticsNumber(item.completed_learners)} hoàn thành
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{getRecordText(item.level, "Chưa phân loại")}</span>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex-1"><ProgressBar percent={progressPercent} /></div>
+              <span className="text-sm font-black text-emerald-700">{formatAnalyticsPercent(progressPercent)}</span>
+            </div>
+          </article>
         );
       })}
     </div>
@@ -298,13 +396,13 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
   const isLoading = status === "loading" || isTokenTransition;
   const summary = visibleSnapshot?.summary ?? {};
   const inventory = summary.content ?? {};
-  const timeseriesPoints = Array.isArray(visibleSnapshot?.timeseries?.points) ? visibleSnapshot.timeseries.points : [];
-  const courses = Array.isArray(visibleSnapshot?.learning?.courses) ? visibleSnapshot.learning.courses : [];
-  const lessons = Array.isArray(visibleSnapshot?.learning?.lessons) ? visibleSnapshot.learning.lessons : [];
-  const quizzes = Array.isArray(visibleSnapshot?.learning?.quizzes) ? visibleSnapshot.learning.quizzes : [];
-  const topSigns = Array.isArray(visibleSnapshot?.content?.top_signs) ? visibleSnapshot.content.top_signs : [];
-  const practiceStatuses = Array.isArray(visibleSnapshot?.content?.practice_statuses) ? visibleSnapshot.content.practice_statuses : [];
-  const signDifficulties = Array.isArray(visibleSnapshot?.content?.sign_difficulties) ? visibleSnapshot.content.sign_difficulties : [];
+  const timeseriesPoints = normalizeAnalyticsRecords(visibleSnapshot?.timeseries?.points);
+  const courses = normalizeAnalyticsRecords(visibleSnapshot?.learning?.courses);
+  const lessons = normalizeAnalyticsRecords(visibleSnapshot?.learning?.lessons);
+  const quizzes = normalizeAnalyticsRecords(visibleSnapshot?.learning?.quizzes);
+  const topSigns = normalizeAnalyticsRecords(visibleSnapshot?.content?.top_signs);
+  const practiceStatuses = normalizeAnalyticsRecords(visibleSnapshot?.content?.practice_statuses);
+  const signDifficulties = normalizeAnalyticsRecords(visibleSnapshot?.content?.sign_difficulties);
 
   if (!accessToken) return null;
 
@@ -369,12 +467,12 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
             <MetricCard
               label="Bài học hoàn thành"
               metric={summary.lesson_completions}
-              detail={`Tỷ lệ hoàn thành ${formatAnalyticsPercent(summary.completion_rates?.lesson_completion_rate)}`}
+              detail={`Tỷ lệ hoàn thành ${formatAnalyticsPercent(normalizeAnalyticsPercent(summary.completion_rates?.lesson_completion_rate))}`}
             />
             <MetricCard
               label="Khóa học hoàn thành"
               metric={summary.course_completions}
-              detail={`Tỷ lệ hoàn thành ${formatAnalyticsPercent(summary.completion_rates?.course_completion_rate)}`}
+              detail={`Tỷ lệ hoàn thành ${formatAnalyticsPercent(normalizeAnalyticsPercent(summary.completion_rates?.course_completion_rate))}`}
             />
             <MetricCard label="Điểm luyện tập" metric={summary.average_practice_score} percent />
             <MetricCard label="Điểm kiểm tra" metric={summary.average_quiz_score} percent />
@@ -416,7 +514,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Hiệu quả chi tiết</p>
                 <h2 id="performance-heading" className="mt-1 text-xl font-black text-slate-950">Nội dung học tập</h2>
               </div>
-              <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Loại nội dung học tập">
+              <div className="inline-flex rounded-xl bg-slate-100 p-1" aria-label="Loại nội dung học tập">
                 {[
                   ["courses", "Khóa học"],
                   ["lessons", "Bài học"],
@@ -425,8 +523,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
                   <button
                     key={tab}
                     type="button"
-                    role="tab"
-                    aria-selected={performanceTab === tab}
+                    aria-pressed={performanceTab === tab}
                     onClick={() => setPerformanceTab(tab)}
                     className={`rounded-lg px-3 py-2 text-xs font-black transition ${performanceTab === tab ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
                   >
@@ -436,68 +533,34 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
               </div>
             </div>
 
-            <div className="mt-5" role="tabpanel">
+            <div className="mt-5">
               {performanceTab === "courses" ? (
-                courses.length === 0 ? <EmptyPanel>Chưa có dữ liệu khóa học trong khoảng thời gian này.</EmptyPanel> : (
-                  <div className="space-y-3">
-                    {courses.map((item) => (
-                      <article key={item.course_id} className="rounded-2xl border border-slate-200 p-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <h3 className="font-black text-slate-900">{item.title}</h3>
-                            <p className="mt-1 text-sm font-semibold text-slate-500">{formatAnalyticsNumber(item.active_learners)} học viên hoạt động · {formatAnalyticsNumber(item.completed_learners)} hoàn thành</p>
-                          </div>
-                          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{item.level}</span>
-                        </div>
-                        <div className="mt-4 flex items-center gap-3">
-                          <div className="flex-1"><ProgressBar value={item.average_progress_percent} /></div>
-                          <span className="text-sm font-black text-emerald-700">{formatAnalyticsPercent(item.average_progress_percent)}</span>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )
+                <LearningPerformanceList items={courses} type="course" />
               ) : null}
 
               {performanceTab === "lessons" ? (
-                lessons.length === 0 ? <EmptyPanel>Chưa có dữ liệu bài học trong khoảng thời gian này.</EmptyPanel> : (
-                  <div className="space-y-3">
-                    {lessons.map((item) => (
-                      <article key={item.lesson_id} className="rounded-2xl border border-slate-200 p-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <h3 className="font-black text-slate-900">{item.title}</h3>
-                            <p className="mt-1 text-sm font-semibold text-slate-500">{formatAnalyticsNumber(item.active_learners)} học viên hoạt động · {formatAnalyticsNumber(item.completed_learners)} hoàn thành</p>
-                          </div>
-                          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{item.level}</span>
-                        </div>
-                        <div className="mt-4 flex items-center gap-3">
-                          <div className="flex-1"><ProgressBar value={item.average_progress_percent} /></div>
-                          <span className="text-sm font-black text-emerald-700">{formatAnalyticsPercent(item.average_progress_percent)}</span>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )
+                <LearningPerformanceList items={lessons} type="lesson" />
               ) : null}
 
               {performanceTab === "quizzes" ? (
                 quizzes.length === 0 ? <EmptyPanel>Chưa có dữ liệu kiểm tra trong khoảng thời gian này.</EmptyPanel> : (
                   <div className="space-y-3">
-                    {quizzes.map((item) => {
-                      const isAmber = toSafeNumber(item.pass_rate) < 70 || toSafeNumber(item.average_score) < 70;
+                    {quizzes.map((item, index) => {
+                      const averageScore = normalizeAnalyticsPercent(item.average_score);
+                      const passRate = normalizeAnalyticsPercent(item.pass_rate);
+                      const isAmber = passRate < 70 || averageScore < 70;
                       return (
-                        <article key={item.quiz_id} className="rounded-2xl border border-slate-200 p-4">
+                        <article key={getRecordKey("quiz", item.quiz_id, index)} className="rounded-2xl border border-slate-200 p-4">
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 className="font-black text-slate-900">{item.title}</h3>
+                            <h3 className="font-black text-slate-900">{getRecordText(item.title, "Bài kiểm tra chưa đặt tên")}</h3>
                             <span className={`rounded-full px-2 py-1 text-xs font-black ${isAmber ? "bg-amber-100 text-amber-800" : "bg-emerald-50 text-emerald-700"}`}>
                               {isAmber ? "Cần theo dõi" : "Ổn định"}
                             </span>
                           </div>
                           <div className="mt-4 grid gap-3 sm:grid-cols-3">
                             <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Lượt làm</p><p className="mt-1 text-lg font-black text-slate-900">{formatAnalyticsNumber(item.attempts)}</p></div>
-                            <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Điểm trung bình</p><p className={`mt-1 text-lg font-black ${toSafeNumber(item.average_score) < 70 ? "text-amber-700" : "text-slate-900"}`}>{formatAnalyticsPercent(item.average_score)}</p></div>
-                            <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Tỷ lệ đạt</p><p className={`mt-1 text-lg font-black ${toSafeNumber(item.pass_rate) < 70 ? "text-amber-700" : "text-emerald-700"}`}>{formatAnalyticsPercent(item.pass_rate)}</p></div>
+                            <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Điểm trung bình</p><p className={`mt-1 text-lg font-black ${averageScore < 70 ? "text-amber-700" : "text-slate-900"}`}>{formatAnalyticsPercent(averageScore)}</p></div>
+                            <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Tỷ lệ đạt</p><p className={`mt-1 text-lg font-black ${passRate < 70 ? "text-amber-700" : "text-emerald-700"}`}>{formatAnalyticsPercent(passRate)}</p></div>
                           </div>
                         </article>
                       );
@@ -527,15 +590,17 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {topSigns.map((item) => {
+                      {topSigns.map((item, index) => {
                         const completionRate = getCompletionRate(item);
+                        const averageScore = normalizeAnalyticsPercent(item.average_score);
+                        const difficulty = getRecordText(item.difficulty, "Chưa phân loại");
                         return (
-                          <tr key={item.sign_id} className="border-b border-slate-100 last:border-0">
-                            <td className="px-2 py-3"><p className="font-black text-slate-900">{item.title}</p><p className="text-xs font-semibold text-slate-500">{difficultyLabels[item.difficulty] ?? item.difficulty}</p></td>
+                          <tr key={getRecordKey("sign", item.sign_id, index)} className="border-b border-slate-100 last:border-0">
+                            <td className="px-2 py-3"><p className="font-black text-slate-900">{getRecordText(item.title, "Ký hiệu chưa đặt tên")}</p><p className="text-xs font-semibold text-slate-500">{difficultyLabels[difficulty] ?? difficulty}</p></td>
                             <td className="px-2 py-3 text-right font-bold text-slate-700">{formatAnalyticsNumber(item.attempts)}</td>
                             <td className="px-2 py-3 text-right font-bold text-slate-700">{formatAnalyticsNumber(item.unique_learners)}</td>
-                            <td className="px-2 py-3 text-right font-black text-slate-900">{formatAnalyticsPercent(item.average_score)}</td>
-                            <td className="px-2 py-3 text-right font-black text-emerald-700">{completionRate === null ? "-" : formatAnalyticsPercent(completionRate)}</td>
+                            <td className="px-2 py-3 text-right font-black text-slate-900">{formatAnalyticsPercent(averageScore)}</td>
+                            <td className="px-2 py-3 text-right font-black text-emerald-700">{completionRate === null ? "-" : formatAnalyticsPercent(normalizeAnalyticsPercent(completionRate))}</td>
                           </tr>
                         );
                       })}
