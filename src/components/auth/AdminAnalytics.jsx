@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   buildAnalyticsQueries,
   createDefaultAnalyticsRange,
@@ -34,6 +34,7 @@ function Button({ children, secondary = false, ...props }) {
 }
 
 export function AdminAnalytics({ apiRequest, accessToken }) {
+  const requestVersionRef = useRef(0);
   const [draftRange, setDraftRange] = useState(() => createDefaultAnalyticsRange());
   const [appliedRange, setAppliedRange] = useState(() => createDefaultAnalyticsRange());
   const [snapshot, setSnapshot] = useState(null);
@@ -41,6 +42,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
   const [error, setError] = useState("");
 
   async function loadDashboard(range = appliedRange) {
+    const requestVersion = ++requestVersionRef.current;
     const rangeError = getRangeError(range);
     if (rangeError) {
       setError(rangeError);
@@ -59,10 +61,12 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
         apiRequest("/api/v1/admin/analytics/learning-performance", { method: "GET", accessToken, query: queries.learning }),
         apiRequest("/api/v1/admin/analytics/content-performance", { method: "GET", accessToken, query: queries.content }),
       ]);
+      if (requestVersion !== requestVersionRef.current) return;
       setSnapshot({ summary, timeseries, learning, content });
       setAppliedRange({ ...range });
       setStatus("ready");
     } catch (requestError) {
+      if (requestVersion !== requestVersionRef.current) return;
       setError(requestError?.message || "Không thể tải dữ liệu phân tích.");
       setStatus("error");
     }
@@ -71,6 +75,9 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
   useEffect(() => {
     if (!accessToken) return;
     loadDashboard();
+    return () => {
+      requestVersionRef.current += 1;
+    };
   }, [accessToken]);
 
   function updateDraftRange(key, value) {
