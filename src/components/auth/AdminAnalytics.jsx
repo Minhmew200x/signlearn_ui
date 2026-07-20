@@ -186,6 +186,23 @@ function ActivityChart({ points, isPrimary, onToggle }) {
           <p id="activity-chart-summary" className="sr-only">
             Biểu đồ đang hiển thị {seriesSummary} từ {startDate} đến {endDate}. Giá trị tối đa trên trục dọc là {formatAnalyticsNumber(sharedMaximum)}.
           </p>
+          <table id="activity-chart-data" className="sr-only">
+            <caption id="activity-chart-data-caption">Dữ liệu biểu đồ theo ngày: {seriesSummary}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Ngày</th>
+                {series.map((item) => <th key={item.key} scope="col">{item.label}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {points.map((point, index) => (
+                <tr key={getRecordKey("activity-point", point.date, index)}>
+                  <th scope="row">{getRecordText(point.date, "Không xác định")}</th>
+                  {series.map((item) => <td key={item.key}>{formatAnalyticsNumber(Math.max(toSafeNumber(point?.[item.key]), 0))}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
           <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2">
             {series.map((item) => (
               <span key={item.key} className="inline-flex items-center gap-2 text-xs font-bold text-slate-600">
@@ -200,6 +217,7 @@ function ActivityChart({ points, isPrimary, onToggle }) {
               viewBox={`0 0 ${chartWidth} ${chartHeight + 34}`}
               role="img"
               aria-labelledby="activity-chart-title activity-chart-summary"
+              aria-describedby="activity-chart-data-caption"
             >
               <title id="activity-chart-title">Biểu đồ hoạt động học tập theo ngày</title>
               {[0, 1, 2, 3].map((line) => (

@@ -135,3 +135,14 @@ test("AdminAnalytics hardens dashboard visuals for malformed records, shared cha
   assert.match(source, /aria-pressed=\{performanceTab === tab\}/);
   assert.doesNotMatch(source, /role="tab(?:list)?"/);
 });
+
+test("AdminAnalytics exposes every selected chart point to screen readers", () => {
+  const source = fs.readFileSync(componentPath, "utf8");
+
+  assert.match(source, /<table id="activity-chart-data" className="sr-only">/);
+  assert.match(source, /<caption id="activity-chart-data-caption">/);
+  assert.match(source, /aria-describedby="activity-chart-data-caption"/);
+  assert.match(source, /points\.map\(\(point, index\) =>/);
+  assert.match(source, /getRecordKey\("activity-point", point\.date, index\)/);
+  assert.match(source, /getRecordText\(point\.date, "Không xác định"\)/);
+});
