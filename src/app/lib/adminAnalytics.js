@@ -1,6 +1,23 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RANGE_DAYS = 366;
 
+export function createAnalyticsRequestGate() {
+  let currentVersion = 0;
+
+  return {
+    begin() {
+      currentVersion += 1;
+      return currentVersion;
+    },
+    invalidate() {
+      currentVersion += 1;
+    },
+    isCurrent(version) {
+      return version === currentVersion;
+    },
+  };
+}
+
 function pad(value) {
   return String(value).padStart(2, "0");
 }

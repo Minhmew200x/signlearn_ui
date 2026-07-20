@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   buildAnalyticsQueries,
+  createAnalyticsRequestGate,
   createDefaultAnalyticsRange,
   getRangeError,
 } from "../../app/lib/adminAnalytics.js";
@@ -19,14 +20,16 @@ function DateField({ label, value, onChange }) {
   );
 }
 
-function Button({ children, secondary = false, ...props }) {
+function Button({ children, secondary = false, className = "", ...props }) {
+  const baseClassName = secondary
+    ? "min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+    : "min-h-10 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300";
+
   return (
     <button
       type="button"
       {...props}
-      className={secondary
-        ? "min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-        : "min-h-10 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"}
+      className={[baseClassName, className].filter(Boolean).join(" ")}
     >
       {children}
     </button>
@@ -34,7 +37,7 @@ function Button({ children, secondary = false, ...props }) {
 }
 
 export function AdminAnalytics({ apiRequest, accessToken }) {
-  const requestVersionRef = useRef(0);
+  const requestGateRef = useRef(createAnalyticsRequestGate());
   const [draftRange, setDraftRange] = useState(() => createDefaultAnalyticsRange());
   const [appliedRange, setAppliedRange] = useState(() => createDefaultAnalyticsRange());
   const [snapshot, setSnapshot] = useState(null);
@@ -42,7 +45,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
   const [error, setError] = useState("");
 
   async function loadDashboard(range = appliedRange) {
-    const requestVersion = ++requestVersionRef.current;
+    const requestToken = requestGateRef.current.begin();
     const rangeError = getRangeError(range);
     if (rangeError) {
       setError(rangeError);
@@ -61,22 +64,30 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
         apiRequest("/api/v1/admin/analytics/learning-performance", { method: "GET", accessToken, query: queries.learning }),
         apiRequest("/api/v1/admin/analytics/content-performance", { method: "GET", accessToken, query: queries.content }),
       ]);
-      if (requestVersion !== requestVersionRef.current) return;
+      if (!requestGateRef.current.isCurrent(requestToken)) return;
       setSnapshot({ summary, timeseries, learning, content });
       setAppliedRange({ ...range });
       setStatus("ready");
     } catch (requestError) {
-      if (requestVersion !== requestVersionRef.current) return;
+      if (!requestGateRef.current.isCurrent(requestToken)) return;
       setError(requestError?.message || "Không thể tải dữ liệu phân tích.");
       setStatus("error");
     }
   }
 
   useEffect(() => {
-    if (!accessToken) return;
-    loadDashboard();
+    requestGateRef.current.invalidate();
+    if (!accessToken) {
+      setSnapshot(null);
+      setError("");
+      setStatus("idle");
+    } else {
+      setSnapshot(null);
+      setError("");
+      loadDashboard();
+    }
     return () => {
-      requestVersionRef.current += 1;
+      requestGateRef.current.invalidate();
     };
   }, [accessToken]);
 
@@ -110,7 +121,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
       </div>
 
       {isLoading && snapshot ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+        <div role="status" aria-live="polite" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
           Dữ liệu gần nhất vẫn đang được hiển thị
         </div>
       ) : null}
@@ -118,10 +129,10 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
       {!snapshot ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
           {isLoading || status === "idle" ? (
-            <p className="text-sm font-semibold text-slate-600">Đang tải bảng điều khiển phân tích...</p>
+            <p role="status" aria-live="polite" className="text-sm font-semibold text-slate-600">Đang tải bảng điều khiển phân tích...</p>
           ) : (
             <>
-              <p className="text-sm font-semibold text-rose-700">{error || "Không thể tải dữ liệu phân tích."}</p>
+              <p role="alert" className="text-sm font-semibold text-rose-700">{error || "Không thể tải dữ liệu phân tích."}</p>
               <Button className="mt-4" onClick={() => loadDashboard()}>Thử lại</Button>
             </>
           )}
@@ -129,7 +140,7 @@ export function AdminAnalytics({ apiRequest, accessToken }) {
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
           {status === "error" ? (
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
               <span>{error || "Không thể cập nhật dữ liệu phân tích."}</span>
               <Button secondary onClick={() => loadDashboard()}>Thử lại</Button>
             </div>

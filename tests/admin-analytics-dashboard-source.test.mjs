@@ -24,18 +24,18 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.match(source, /setSnapshot\(\{ summary, timeseries, learning, content \}\)/);
   assert.match(source, /Dữ liệu gần nhất vẫn đang được hiển thị/);
   assert.match(source, /Thử lại/);
-  assert.match(source, /useRef\(0\)/);
+  assert.match(source, /useRef\(createAnalyticsRequestGate\(\)\)/);
   assert.match(
     source,
-    /async function loadDashboard\(range = appliedRange\) \{\s+const requestVersion = \+\+requestVersionRef\.current;/
+    /async function loadDashboard\(range = appliedRange\) \{\s+const requestToken = requestGateRef\.current\.begin\(\);/
   );
   assert.match(
     source,
-    /\]\);\s+if \(requestVersion !== requestVersionRef\.current\) return;\s+setSnapshot\(\{ summary, timeseries, learning, content \}\);\s+setAppliedRange\(\{ \.\.\.range \}\);/
+    /\]\);\s+if \(!requestGateRef\.current\.isCurrent\(requestToken\)\) return;\s+setSnapshot\(\{ summary, timeseries, learning, content \}\);\s+setAppliedRange\(\{ \.\.\.range \}\);/
   );
   assert.match(
     source,
-    /catch \(requestError\) \{\s+if \(requestVersion !== requestVersionRef\.current\) return;\s+setError\(requestError\?\.message \|\| "Không thể tải dữ liệu phân tích\."\);/
+    /catch \(requestError\) \{\s+if \(!requestGateRef\.current\.isCurrent\(requestToken\)\) return;\s+setError\(requestError\?\.message \|\| "Không thể tải dữ liệu phân tích\."\);/
   );
   assert.match(source, /apiRequest\("\/api\/v1\/admin\/analytics\/summary", \{ method: "GET", accessToken, query: queries\.summary \}\)/);
   assert.match(source, /apiRequest\("\/api\/v1\/admin\/analytics\/timeseries", \{ method: "GET", accessToken, query: queries\.timeseries \}\)/);
@@ -43,7 +43,7 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.match(source, /apiRequest\("\/api\/v1\/admin\/analytics\/content-performance", \{ method: "GET", accessToken, query: queries\.content \}\)/);
   assert.match(
     source,
-    /useEffect\(\(\) => \{\s+if \(!accessToken\) return;\s+loadDashboard\(\);\s+return \(\) => \{\s+requestVersionRef\.current \+= 1;\s+\};\s+\}, \[accessToken\]\);/
+    /useEffect\(\(\) => \{\s+requestGateRef\.current\.invalidate\(\);\s+if \(!accessToken\) \{\s+setSnapshot\(null\);\s+setError\(""\);\s+setStatus\("idle"\);\s+\} else \{\s+setSnapshot\(null\);\s+setError\(""\);\s+loadDashboard\(\);\s+\}\s+return \(\) => \{\s+requestGateRef\.current\.invalidate\(\);\s+\};\s+\}, \[accessToken\]\);/
   );
   assert.match(
     source,
@@ -63,4 +63,9 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.match(source, /<Button secondary onClick=\{resetToThirtyDays\} disabled=\{isLoading\}>30 ngày gần nhất<\/Button>/);
   assert.match(source, /<Button onClick=\{\(\) => loadDashboard\(draftRange\)\} disabled=\{isLoading\}>Áp dụng<\/Button>/);
   assert.match(source, /<Button secondary onClick=\{\(\) => loadDashboard\(\)\} disabled=\{isLoading\}>Tải lại<\/Button>/);
+  assert.match(source, /function Button\(\{ children, secondary = false, className = "", \.\.\.props \}\)/);
+  assert.match(source, /\[baseClassName, className\]\.filter\(Boolean\)\.join\(" "\)/);
+  assert.match(source, /<Button className="mt-4" onClick=\{\(\) => loadDashboard\(\)\}>Thử lại<\/Button>/);
+  assert.equal([...source.matchAll(/role="status" aria-live="polite"/g)].length, 2);
+  assert.equal([...source.matchAll(/role="alert"/g)].length, 2);
 });

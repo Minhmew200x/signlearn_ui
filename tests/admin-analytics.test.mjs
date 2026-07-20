@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildAnalyticsQueries,
+  createAnalyticsRequestGate,
   createDefaultAnalyticsRange,
   formatAnalyticsPercent,
   getCompletionRate,
@@ -10,6 +11,21 @@ import {
   getRangeError,
   makeLinePoints,
 } from "../src/app/lib/adminAnalytics.js";
+
+test("request gate invalidates stale analytics loads", () => {
+  const gate = createAnalyticsRequestGate();
+  const first = gate.begin();
+  const second = gate.begin();
+
+  assert.equal(gate.isCurrent(first), false);
+  assert.equal(gate.isCurrent(second), true);
+
+  gate.invalidate();
+  assert.equal(gate.isCurrent(second), false);
+
+  const later = gate.begin();
+  assert.equal(gate.isCurrent(later), true);
+});
 
 test("creates an inclusive 30-day UTC analytics range", () => {
   assert.deepEqual(createDefaultAnalyticsRange(new Date("2026-07-20T16:00:00+07:00")), {
