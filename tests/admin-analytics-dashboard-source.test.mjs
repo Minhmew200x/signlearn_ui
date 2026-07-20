@@ -82,3 +82,31 @@ test("AdminAnalytics keeps the dashboard lifecycle and request contract in sourc
   assert.equal([...source.matchAll(/role="status" aria-live="polite"/g)].length, 2);
   assert.equal([...source.matchAll(/role="alert"/g)].length, 2);
 });
+
+test("AdminAnalytics renders dependency-free Vietnamese analytics visuals from the visible snapshot", () => {
+  const source = fs.readFileSync(componentPath, "utf8");
+
+  [
+    "Tổng học viên",
+    "Hoạt động học tập",
+    "Khóa học",
+    "Bài học",
+    "Kiểm tra",
+    "Ký hiệu được luyện nhiều",
+  ].forEach((label) => assert.match(source, new RegExp(label)));
+
+  [
+    "active_learners",
+    "practice_attempts",
+    "quiz_submissions",
+    "practice_statuses",
+    "sign_difficulties",
+  ].forEach((field) => assert.match(source, new RegExp(field)));
+
+  assert.match(source, /formatAnalyticsPercent/);
+  assert.match(source, /getMetricTrend/);
+  assert.match(source, /getCompletionRate/);
+  assert.match(source, /makeLinePoints/);
+  assert.match(source, /<svg[\s>]/);
+  assert.doesNotMatch(source, /(?:from\s+["']|import\s+)[^\n]*\b(?:recharts|chart\.js|victory)\b/i);
+});
