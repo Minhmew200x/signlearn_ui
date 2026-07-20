@@ -1,0 +1,54 @@
+<style>
+  .dashboard-choice { border: 1px solid #dbe4ee; border-radius: 18px; background: #f8fafc; padding: 14px; color: #0f172a; }
+  .dashboard-choice * { box-sizing: border-box; }
+  .dashboard-choice .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:10px; font-weight:800; color:#475569; }
+  .dashboard-choice .brand { color:#047857; letter-spacing:.08em; text-transform:uppercase; }
+  .dashboard-choice .toolbar { display:flex; gap:6px; align-items:center; }
+  .dashboard-choice .pill { border:1px solid #cbd5e1; border-radius:8px; background:white; padding:4px 7px; font-size:8px; }
+  .dashboard-choice .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:9px 0; }
+  .dashboard-choice .metric { border-radius:11px; background:white; padding:8px; box-shadow:0 1px 2px rgba(15,23,42,.06); }
+  .dashboard-choice .metric strong { display:block; font-size:15px; margin-top:4px; }
+  .dashboard-choice .up { color:#059669; font-size:8px; }
+  .dashboard-choice .grid { display:grid; grid-template-columns:1.55fr 1fr; gap:7px; }
+  .dashboard-choice .panel { min-height:94px; border-radius:11px; background:white; padding:9px; box-shadow:0 1px 2px rgba(15,23,42,.06); }
+  .dashboard-choice .title { font-size:9px; font-weight:800; }
+  .dashboard-choice .chart { height:55px; margin-top:8px; border-radius:7px; background:linear-gradient(180deg,rgba(16,185,129,.14),transparent); position:relative; overflow:hidden; }
+  .dashboard-choice .chart:after { content:""; position:absolute; inset:11px 6px 3px; background:linear-gradient(150deg,transparent 0 6%,#10b981 7% 8%,transparent 9% 20%,#10b981 21% 23%,transparent 24% 40%,#10b981 41% 43%,transparent 44% 55%,#10b981 56% 58%,transparent 59% 74%,#10b981 75% 77%,transparent 78%); opacity:.8; }
+  .dashboard-choice .rows { margin-top:7px; display:grid; gap:5px; }
+  .dashboard-choice .row { display:grid; grid-template-columns:1fr 42px; gap:6px; align-items:center; font-size:8px; }
+  .dashboard-choice .bar { height:6px; border-radius:99px; background:#e2e8f0; overflow:hidden; }
+  .dashboard-choice .bar i { display:block; height:100%; border-radius:99px; background:#14b8a6; }
+  .dashboard-choice .wide { grid-column: 1 / -1; min-height:74px; }
+  .dashboard-choice .tabs { display:flex; gap:6px; margin-top:6px; }
+  .dashboard-choice .tab { border-radius:6px; background:#ecfdf5; color:#047857; padding:3px 6px; font-size:7px; font-weight:700; }
+  @media (max-width: 650px) { .dashboard-choice .metrics{grid-template-columns:repeat(2,1fr)} .dashboard-choice .grid{grid-template-columns:1fr} }
+</style>
+
+<h2>Chọn bố cục cho Analytics</h2>
+<p class="subtitle">Cả hai phương án đều dùng bốn API analytics, bộ lọc khoảng ngày và các trạng thái tải/lỗi theo tài liệu bàn giao.</p>
+
+<div class="cards">
+  <div class="card" data-choice="analytics-first" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="dashboard-choice">
+        <div class="top"><span class="brand">SignLearn • Analytics</span><div class="toolbar"><span class="pill">21/06 – 20/07</span><span class="pill">Tải lại</span></div></div>
+        <div class="metrics">
+          <div class="metric"><small>Học viên</small><strong>1,280</strong></div><div class="metric"><small>Học mới</small><strong>84</strong><span class="up">↑ 10.5%</span></div><div class="metric"><small>Đang học</small><strong>320</strong><span class="up">↑ 13.9%</span></div><div class="metric"><small>Lượt luyện</small><strong>945</strong><span class="up">↑ 16.5%</span></div>
+        </div>
+        <div class="grid"><div class="panel"><div class="title">Hoạt động học tập</div><div class="chart"></div></div><div class="panel"><div class="title">Điểm trung bình</div><div class="rows"><div class="row"><span>Luyện tập 82.4%</span><span class="bar"><i style="width:82%"></i></span></div><div class="row"><span>Quiz 78.7%</span><span class="bar"><i style="width:79%"></i></span></div><div class="row"><span>Qua quiz 72.0%</span><span class="bar"><i style="width:72%"></i></span></div></div></div><div class="panel wide"><div class="title">Hiệu quả học tập</div><div class="tabs"><span class="tab">Khóa học</span><span class="tab">Bài học</span><span class="tab">Quiz</span></div><div class="rows"><div class="row"><span>Giao tiếp cơ bản</span><span class="bar"><i style="width:67%"></i></span></div><div class="row"><span>Chào hỏi</span><span class="bar"><i style="width:73%"></i></span></div></div></div></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A — Analytics là trang chính</h3><p>Thay phần “Tổng quan” hiện có bằng dashboard phân tích. Các mục quản trị vẫn ở sidebar để chỉnh user, khóa học, nội dung và AI.</p></div>
+  </div>
+  <div class="card" data-choice="analytics-section" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="dashboard-choice">
+        <div class="top"><span class="brand">SignLearn • Admin</span><div class="toolbar"><span class="pill">Tổng quan</span><span class="pill">Analytics</span></div></div>
+        <div class="grid" style="grid-template-columns:60px 1fr"><div class="panel" style="min-height:190px; padding:8px"><div class="title" style="font-size:7px">Tổng quan</div><div class="title" style="font-size:7px;margin-top:14px;color:#047857">Analytics</div><div class="title" style="font-size:7px;margin-top:14px">Users</div><div class="title" style="font-size:7px;margin-top:14px">Courses</div><div class="title" style="font-size:7px;margin-top:14px">AI</div></div><div><div class="metrics"><div class="metric"><small>Học mới</small><strong>84</strong><span class="up">↑10.5%</span></div><div class="metric"><small>Đang học</small><strong>320</strong><span class="up">↑13.9%</span></div><div class="metric"><small>Lượt luyện</small><strong>945</strong><span class="up">↑16.5%</span></div><div class="metric"><small>Hoàn thành</small><strong>197</strong><span class="up">↑12.6%</span></div></div><div class="panel"><div class="title">Hoạt động học tập</div><div class="chart"></div></div><div class="panel" style="margin-top:7px"><div class="title">Ký hiệu được luyện nhiều</div><div class="rows"><div class="row"><span>Xin chào</span><span class="bar"><i style="width:85%"></i></span></div><div class="row"><span>Cảm ơn</span><span class="bar"><i style="width:64%"></i></span></div></div></div></div></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B — Analytics là mục riêng</h3><p>Giữ nguyên “Tổng quan” hiện tại và thêm tab Analytics riêng. Ít ảnh hưởng tới luồng cũ, nhưng admin sẽ cần một lần bấm để vào dashboard.</p></div>
+  </div>
+</div>
+
+<p class="subtitle">Bấm vào phương án bạn thích, rồi trả lời trong khung chat: A hoặc B (hoặc nêu điều chỉnh).</p>
