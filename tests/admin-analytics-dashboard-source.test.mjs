@@ -27,6 +27,26 @@ test("AdminDashboard delegates the default section to AdminAnalytics without leg
     /useEffect\(\(\) => \{\s+if \(!accessToken \|\| activeSection === "tong-quan"\) return;\s+loadSection\(activeSection\);/
   );
   assert.doesNotMatch(source, /\/api\/v1\/admin\/overview/);
+  assert.doesNotMatch(source, /function renderOverviewSection\(/);
+
+  const sectionDefinitions = source.match(/const SECTION_DEFS = \[([\s\S]*?)\];/)?.[1];
+  assert.ok(sectionDefinitions, "the dashboard section definitions must remain explicit");
+
+  const renderSectionBody = source.match(/function renderSectionBody\(\) \{([\s\S]*?)\n  \}/)?.[1];
+  assert.ok(renderSectionBody, "the dashboard section renderer must remain explicit");
+
+  [
+    ["nguoi-dung", "renderUsersSection"],
+    ["khoa-hoc", "renderCoursesSection"],
+    ["bai-hoc", "renderLessonsSection"],
+    ["noi-dung-mooc", "renderContentSection"],
+    ["blog", "renderBlogSection"],
+    ["ai", "renderAiSection"],
+    ["practice", "renderPracticeSection"],
+  ].forEach(([sectionId, renderSection]) => {
+    assert.match(sectionDefinitions, new RegExp(`\\{ id: "${sectionId}", label: "[^"]+" \\}`));
+    assert.match(renderSectionBody, new RegExp(`if \\(activeSection === "${sectionId}"\\) return ${renderSection}\\(\\);`));
+  });
 });
 
 test("AdminAnalytics keeps the dashboard lifecycle and request contract in source", () => {
