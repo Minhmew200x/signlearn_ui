@@ -27,7 +27,7 @@
 - Create: `tests/admin-analytics.test.mjs`
 - Create: `src/app/lib/adminAnalytics.js`
 
-- [ ] **Step 1: Write the failing helper tests**
+- [x] **Step 1: Write the failing helper tests**
 
 ```js
 import test from "node:test";
@@ -77,13 +77,13 @@ test("scales chronological activity values into deterministic SVG points", () =>
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm the module is missing**
+- [x] **Step 2: Run the test and confirm the module is missing**
 
 Run: `npm test -- tests/admin-analytics.test.mjs`
 
 Expected: FAIL with `ERR_MODULE_NOT_FOUND` for `src/app/lib/adminAnalytics.js`.
 
-- [ ] **Step 3: Implement the pure module**
+- [x] **Step 3: Implement the pure module**
 
 Create `src/app/lib/adminAnalytics.js` with this exported implementation:
 
@@ -157,13 +157,13 @@ export function makeLinePoints(points, key, width, height) {
 }
 ```
 
-- [ ] **Step 4: Run the focused helper tests**
+- [x] **Step 4: Run the focused helper tests**
 
 Run: `npm test -- tests/admin-analytics.test.mjs`
 
 Expected: PASS with 5 tests.
 
-- [ ] **Step 5: Commit the isolated helper contract**
+- [x] **Step 5: Commit the isolated helper contract**
 
 ```bash
 git add tests/admin-analytics.test.mjs src/app/lib/adminAnalytics.js
@@ -177,7 +177,7 @@ git commit -m "Define safe analytics dashboard data helpers"
 - Create: `tests/admin-analytics-dashboard-source.test.mjs`
 - Create: `src/components/auth/AdminAnalytics.jsx`
 
-- [ ] **Step 1: Write the failing request-lifecycle source contract**
+- [x] **Step 1: Write the failing request-lifecycle source contract**
 
 ```js
 import test from "node:test";
@@ -202,13 +202,13 @@ test("analytics dashboard loads the four documented endpoints as one snapshot", 
 });
 ```
 
-- [ ] **Step 2: Run the contract test and confirm the component is missing**
+- [x] **Step 2: Run the contract test and confirm the component is missing**
 
 Run: `npm test -- tests/admin-analytics-dashboard-source.test.mjs`
 
 Expected: FAIL with `ENOENT` for `src/components/auth/AdminAnalytics.jsx`.
 
-- [ ] **Step 3: Implement the request lifecycle and filter controls**
+- [x] **Step 3: Implement the request lifecycle and filter controls**
 
 Create `AdminAnalytics.jsx`. Its request code must follow this shape exactly so all calls receive the same range and a failed refresh does not erase `snapshot`:
 
@@ -251,13 +251,13 @@ useEffect(() => {
 
 Render two controlled `type="date"` inputs bound to `draftRange`, a “30 ngày” button that resets `draftRange`, an “Áp dụng” button calling `loadDashboard(draftRange)`, and a “Tải lại” button calling `loadDashboard(appliedRange)`. While `status === "loading" && snapshot`, show the text `Dữ liệu gần nhất vẫn đang được hiển thị`; render the latest `error` with a `Thử lại` button. Before the first snapshot, render the existing card-style loading, error, and empty messages rather than a blank panel.
 
-- [ ] **Step 4: Run the request-lifecycle source contract**
+- [x] **Step 4: Run the request-lifecycle source contract**
 
 Run: `npm test -- tests/admin-analytics-dashboard-source.test.mjs`
 
 Expected: PASS with 1 test.
 
-- [ ] **Step 5: Commit the fetch lifecycle**
+- [x] **Step 5: Commit the fetch lifecycle**
 
 ```bash
 git add tests/admin-analytics-dashboard-source.test.mjs src/components/auth/AdminAnalytics.jsx
@@ -271,7 +271,7 @@ git commit -m "Load analytics dashboard data as a shared snapshot"
 - Modify: `tests/admin-analytics-dashboard-source.test.mjs`
 - Modify: `src/components/auth/AdminAnalytics.jsx`
 
-- [ ] **Step 1: Extend the source contract for the documented visual sections**
+- [x] **Step 1: Extend the source contract for the documented visual sections**
 
 Append this test to `tests/admin-analytics-dashboard-source.test.mjs`:
 
@@ -294,13 +294,13 @@ test("analytics dashboard exposes the required visual sections without a chart d
 });
 ```
 
-- [ ] **Step 2: Run the extended test and confirm it fails on the absent sections**
+- [x] **Step 2: Run the extended test and confirm it fails on the absent sections**
 
 Run: `npm test -- tests/admin-analytics-dashboard-source.test.mjs`
 
 Expected: FAIL in `analytics dashboard exposes the required visual sections` because the initial component has no KPI/chart/table markup.
 
-- [ ] **Step 3: Add the complete visual hierarchy**
+- [x] **Step 3: Add the complete visual hierarchy**
 
 Inside `AdminAnalytics.jsx`, add the following fixed KPI configuration and use it to render cards from `snapshot.summary`:
 
@@ -325,13 +325,13 @@ Render a controlled three-tab performance panel. The `courses` and `lessons` row
 
 Use the existing rounded card, slate, emerald, rose, and amber Tailwind treatments. Each data collection must render a friendly empty row when its array is empty. Do not introduce imports beyond React and `adminAnalytics.js`.
 
-- [ ] **Step 4: Run the visual source contract and the helper tests**
+- [x] **Step 4: Run the visual source contract and the helper tests**
 
 Run: `npm test -- tests/admin-analytics.test.mjs tests/admin-analytics-dashboard-source.test.mjs`
 
 Expected: PASS with 7 tests.
 
-- [ ] **Step 5: Commit the dashboard visual sections**
+- [x] **Step 5: Commit the dashboard visual sections**
 
 ```bash
 git add tests/admin-analytics-dashboard-source.test.mjs src/components/auth/AdminAnalytics.jsx
@@ -345,7 +345,7 @@ git commit -m "Render the admin analytics dashboard"
 - Modify: `tests/admin-analytics-dashboard-source.test.mjs`
 - Modify: `src/components/auth/AdminDashboard.jsx`
 
-- [ ] **Step 1: Add the failing route-integration source contract**
+- [x] **Step 1: Add the failing route-integration source contract**
 
 Append this test:
 
@@ -359,13 +359,13 @@ test("default admin route delegates to the standalone analytics component", asyn
 });
 ```
 
-- [ ] **Step 2: Run the source contract and confirm the existing dashboard fails it**
+- [x] **Step 2: Run the source contract and confirm the existing dashboard fails it**
 
 Run: `npm test -- tests/admin-analytics-dashboard-source.test.mjs`
 
 Expected: FAIL in `default admin route delegates to the standalone analytics component` because the existing section is labelled `Admin` and loads `/api/v1/admin/overview`.
 
-- [ ] **Step 3: Wire the new component and remove only dead overview behavior**
+- [x] **Step 3: Wire the new component and remove only dead overview behavior**
 
 Make these exact integration changes in `AdminDashboard.jsx`:
 
@@ -407,13 +407,13 @@ function renderSectionBody() {
 
 Delete the `sectionId === "tong-quan"` branch in `loadSection` and delete `renderOverviewSection`; neither is reachable after the integration. Keep every non-analytics request and renderer unchanged.
 
-- [ ] **Step 4: Run integration, focused legacy, and route tests**
+- [x] **Step 4: Run integration, focused legacy, and route tests**
 
 Run: `npm test -- tests/admin-analytics.test.mjs tests/admin-analytics-dashboard-source.test.mjs tests/admin-dashboard-content.test.mjs tests/route-contract.test.mjs`
 
 Expected: PASS with all tests in the four files.
 
-- [ ] **Step 5: Commit the default-route integration**
+- [x] **Step 5: Commit the default-route integration**
 
 ```bash
 git add tests/admin-analytics-dashboard-source.test.mjs src/components/auth/AdminDashboard.jsx
@@ -426,25 +426,25 @@ git commit -m "Open the admin dashboard on analytics"
 
 - Modify: `docs/superpowers/plans/2026-07-20-admin-analytics-dashboard.md` — mark all completed checkboxes only after the matching command has passed.
 
-- [ ] **Step 1: Run the complete focused analytics regression set**
+- [x] **Step 1: Run the complete focused analytics regression set**
 
 Run: `npm test -- tests/admin-analytics.test.mjs tests/admin-analytics-dashboard-source.test.mjs tests/admin-dashboard-content.test.mjs tests/route-contract.test.mjs`
 
 Expected: PASS with zero failures.
 
-- [ ] **Step 2: Run the production build**
+- [x] **Step 2: Run the production build**
 
 Run: `npm run build`
 
 Expected: exit code 0 and Vite reports the generated production bundle.
 
-- [ ] **Step 3: Run the repository suite and classify only the pre-existing failures**
+- [x] **Step 3: Run the repository suite and classify only the pre-existing failures**
 
 Run: `npm test`
 
 Expected: 64 passing tests and exactly these two known failures, both in `tests/practice-mediapipe-cdn.test.mjs`: `practice webcam client uses a published MediaPipe wasm base URL` and `practice worker uses the same published MediaPipe CDN version and wasm base URL`. No analytics, admin-dashboard, route, or build failure is acceptable.
 
-- [ ] **Step 4: Check the diff for whitespace and scope**
+- [x] **Step 4: Check the diff for whitespace and scope**
 
 Run: `git diff --check master...HEAD && git diff --name-only master...HEAD`
 
