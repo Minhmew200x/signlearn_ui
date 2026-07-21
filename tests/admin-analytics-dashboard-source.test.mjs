@@ -8,6 +8,26 @@ const componentPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../src/components/auth/AdminAnalytics.jsx"
 );
+const dashboardPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../src/components/auth/AdminDashboard.jsx"
+);
+
+test("AdminDashboard delegates the default section to AdminAnalytics without legacy overview loading", () => {
+  const source = fs.readFileSync(dashboardPath, "utf8");
+
+  assert.match(source, /import \{ AdminAnalytics \} from "\.\/AdminAnalytics";/);
+  assert.match(source, /\{ id: "tong-quan", label: "Analytics" \}/);
+  assert.match(
+    source,
+    /function renderSectionBody\(\) \{\s+if \(activeSection === "tong-quan"\) return <AdminAnalytics apiRequest=\{apiRequest\} accessToken=\{accessToken\} \/>;/
+  );
+  assert.match(
+    source,
+    /useEffect\(\(\) => \{\s+if \(!accessToken \|\| activeSection === "tong-quan"\) return;\s+loadSection\(activeSection\);/
+  );
+  assert.doesNotMatch(source, /\/api\/v1\/admin\/overview/);
+});
 
 test("AdminAnalytics keeps the dashboard lifecycle and request contract in source", () => {
   const source = fs.readFileSync(componentPath, "utf8");

@@ -16,12 +16,13 @@ import { createAiConfigDraft, getAiConfigEndpoint, normalizeAiConfigPatchPayload
 import { collectSignSlugOptions } from "../../app/lib/adminSignSlugs.js";
 import { resolveQuizCreateAvailability, resolveVisibleLessonSelection } from "../../app/lib/adminDashboardContent.js";
 import { makeDashboardPath } from "../../app/lib/routing.js";
+import { AdminAnalytics } from "./AdminAnalytics";
 
 const LEVEL_OPTIONS = ["beginner", "intermediate", "advanced"];
 const ROLE_OPTIONS = ["student", "admin"];
 const ADMIN_SIGN_SLUG_LIST_ID = "admin-sign-slug-options";
 const SECTION_DEFS = [
-  { id: "tong-quan", label: "Admin" },
+  { id: "tong-quan", label: "Analytics" },
   { id: "nguoi-dung", label: "Users" },
   { id: "khoa-hoc", label: "Courses" },
   { id: "bai-hoc", label: "Lessons" },
@@ -174,8 +175,6 @@ export function AdminDashboard({
   apiRequest,
   pathname,
   navigateTo,
-  apiBaseUrl,
-  googleClientId,
 }) {
   const activeSection = useMemo(() => getDashboardSection(pathname), [pathname]);
   const [sectionState, setSectionState] = useState({});
@@ -219,25 +218,6 @@ export function AdminDashboard({
 
     try {
       let data;
-      if (sectionId === "tong-quan") {
-        const [overviewResp, authMeResp, profileResp, usersResp, coursesResp, lessonsResp] = await Promise.allSettled([
-          apiRequest("/api/v1/admin/overview", { accessToken }),
-          apiRequest("/api/v1/auth/me", { accessToken }),
-          apiRequest("/api/v1/users/me", { accessToken }),
-          apiRequest("/api/v1/users", { accessToken, query: { skip: 0, limit: 8 } }),
-          apiRequest("/api/v1/courses", { accessToken, query: { skip: 0, limit: 200, include_unpublished: true } }),
-          apiRequest("/api/v1/lessons", { accessToken, query: { skip: 0, limit: 200, include_unpublished: true } }),
-        ]);
-        data = {
-          overview: overviewResp.status === "fulfilled" ? overviewResp.value : null,
-          authMe: authMeResp.status === "fulfilled" ? authMeResp.value : null,
-          profile: profileResp.status === "fulfilled" ? profileResp.value : null,
-          recentUsers: usersResp.status === "fulfilled" ? normalizeList(usersResp.value) : [],
-          courses: coursesResp.status === "fulfilled" ? normalizeList(coursesResp.value) : [],
-          lessons: lessonsResp.status === "fulfilled" ? normalizeList(lessonsResp.value) : [],
-        };
-      }
-
       if (sectionId === "nguoi-dung") {
         const payload = await apiRequest("/api/v1/users", { accessToken, query: { skip: 0, limit: 200 } });
         data = { users: normalizeList(payload), meta: payload };
@@ -381,7 +361,7 @@ export function AdminDashboard({
   }
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || activeSection === "tong-quan") return;
     loadSection(activeSection);
   }, [activeSection, accessToken]);
 
@@ -759,74 +739,6 @@ export function AdminDashboard({
 
   const currentContentDetail = contentDetailsByLessonId[contentLessonId] || null;
   const currentContentStatus = contentStatusByLessonId[contentLessonId] || "idle";
-
-  function renderOverviewSection() {
-    const data = sectionState["tong-quan"]?.data;
-    if (!data) return null;
-    const counts = data.overview?.counts || data.overview?.summary || {};
-    const publishedCourses = data.courses.filter((item) => item.is_published).length;
-    const publishedLessons = data.lessons.filter((item) => item.is_published).length;
-
-    return (
-      <div className="space-y-5">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Users" value={counts.users ?? data.recentUsers.length} helper="Recent sample + admin overview" />
-          <StatCard label="Courses" value={counts.courses ?? data.courses.length} helper={`${publishedCourses} published`} />
-          <StatCard label="Lessons" value={counts.lessons ?? data.lessons.length} helper={`${publishedLessons} published`} />
-          <StatCard label="Backend" value={apiBaseUrl || "relative"} helper="API base URL" />
-        </div>
-
-        <div className="grid gap-5 xl:grid-cols-[1.25fr_0.95fr]">
-          <Card className="p-5 md:p-6">
-            <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Admin profile</div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-3xl bg-slate-50 p-4">
-                <div className="text-sm font-black text-slate-900">Signed in</div>
-                <div className="mt-3 space-y-2 text-sm font-semibold text-slate-700">
-                  <div>Name: {data.profile?.full_name || data.authMe?.full_name || user?.full_name || "-"}</div>
-                  <div>Email: {data.profile?.email || data.authMe?.email || user?.email || "-"}</div>
-                  <div>Role: {data.profile?.role || data.authMe?.role || user?.role || "-"}</div>
-                  <div>Updated: {formatDate(data.profile?.updated_at || data.authMe?.updated_at)}</div>
-                </div>
-              </div>
-              <div className="rounded-3xl bg-emerald-50 p-4">
-                <div className="text-sm font-black text-slate-900">System links</div>
-                <div className="mt-3 space-y-2 text-sm font-semibold text-slate-700">
-                  <div>Dashboard route: {pathname || "/dashboard"}</div>
-                  <div>Google client ID: {googleClientId || "-"}</div>
-                  <div>Lazy section: {activeSection}</div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-5 md:p-6">
-            <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Recent users</div>
-            <div className="mt-4 space-y-3">
-              {data.recentUsers.length ? data.recentUsers.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200 px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-black text-slate-900">{item.full_name || item.email}</div>
-                      <div className="text-xs font-semibold text-slate-500">{item.email}</div>
-                    </div>
-                    <StatusBadge tone={item.role === "admin" ? "amber" : "green"}>{item.role}</StatusBadge>
-                  </div>
-                </div>
-              )) : <EmptyState title="No user sample" description="Backend did not return user rows." />}
-            </div>
-          </Card>
-        </div>
-
-        <Card className="p-5 md:p-6">
-          <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Admin overview payload</div>
-          <div className="mt-4">
-            <JsonPreview value={data.overview} />
-          </div>
-        </Card>
-      </div>
-    );
-  }
 
   function renderUsersSection() {
     const users = usersData.users;
@@ -1412,6 +1324,8 @@ export function AdminDashboard({
   }
 
   function renderSectionBody() {
+    if (activeSection === "tong-quan") return <AdminAnalytics apiRequest={apiRequest} accessToken={accessToken} />;
+
     if (activeSectionState.status === "loading" && !activeSectionState.data) {
       return <EmptyState title="Loading..." description="Data will load only when this section is opened." />;
     }
@@ -1420,7 +1334,6 @@ export function AdminDashboard({
       return <EmptyState title="Load failed" description={activeSectionState.error} />;
     }
 
-    if (activeSection === "tong-quan") return renderOverviewSection();
     if (activeSection === "nguoi-dung") return renderUsersSection();
     if (activeSection === "khoa-hoc") return renderCoursesSection();
     if (activeSection === "bai-hoc") return renderLessonsSection();
